@@ -1,0 +1,162 @@
+:root{
+  --bg:#f4eef6;
+  --card:#ffffff;
+  --ink:#2a2340;
+  --muted:#6b6780;
+  --brand:#7c5ce4;
+  --brand-weak:#ede8ff;
+  --ok:#38b26b;
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+
+.screen{max-width:420px;margin:0 auto;padding:12px 12px 80px}
+
+.topbar{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;height:48px}
+.topbar .title{text-align:center;font-weight:600}
+.icon-btn{width:40px;height:40px;border:0;background:transparent;font-size:20px;border-radius:12px}
+.avatar{width:32px;height:32px;border-radius:999px;background:#d9d4e8;margin-left:4px}
+
+.status-strip{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;margin:6px 0 10px}
+.chip{padding:4px 8px;border-radius:999px;background:#e9e6f9}
+.chip.ok{background:#dff7ea}
+
+.row{display:flex;gap:12px;align-items:center}
+.row.spaced{justify-content:space-between}
+.row.two{margin-top:8px}
+.row.two .btn{flex:1}
+
+.switch{position:relative;width:54px;height:24px;border-radius:999px;background:#e6e1f7;border:0;display:flex;align-items:center;padding-left:6px;gap:6px}
+.switch.on{background:var(--brand)}
+.switch .knob{width:16px;height:16px;border-radius:999px;background:#fff;transform:translateX(0);transition:.15s}
+.switch.on .knob{transform:translateX(28px)}
+.switch small{font-size:11px;color:var(--muted);margin-left:6px}
+
+.segmented{display:flex;background:var(--brand-weak);border-radius:12px;padding:4px;gap:4px}
+.seg{border:0;background:transparent;padding:8px 12px;border-radius:10px}
+.seg.active{background:#fff;color:#000;font-weight:600;box-shadow:0 0 0 1px #e2ddff inset}
+
+.card{background:var(--card);border-radius:16px;padding:12px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.snapshot{height:160px;border-radius:12px;background:#eee;overflow:hidden}
+.snapshot img{width:100%;height:100%;object-fit:cover}
+.placeholder{width:100%;height:100%;background:repeating-linear-gradient(45deg,#eee,#eee 10px,#f7f5fb 10px,#f7f5fb 20px)}
+.caption{margin-top:8px;color:var(--muted);font-size:14px}
+
+.card.mini{display:flex;align-items:center;gap:12px}
+.mini-left{font-size:22px}
+.metric{font-size:24px;font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+
+.pad{display:grid;grid-template-rows:auto auto auto;justify-items:center;gap:10px;margin:10px 0}
+.pad-middle{display:grid;grid-template-columns:repeat(3,64px);gap:10px}
+.pad-btn{width:64px;height:48px;border-radius:12px;border:0;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06);font-size:18px}
+.pad-btn.stop{background:#ffe6e6}
+
+.btn{border:0;background:#eae6fb;padding:12px;border-radius:12px;font-weight:600}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.block{width:100%;margin-top:12px}
+
+.estop{position:fixed;right:16px;bottom:16px;background:#ff5c67;border:0;color:#fff;border-radius:14px;padding:12px 16px;font-weight:800}
+
+/* Forzar “phone” centrado siempre */
+body{background:#ece7f3;}
+.screen{
+  max-width:420px;      /* ancho móvil */
+  min-height:100vh;     /* ocupar alto de pantalla */
+  margin:0 auto;
+  padding:12px 12px 96px;
+  background:#f8f5fc;   /* fondo interior */
+  box-shadow:0 6px 32px rgba(0,0,0,.12);
+  border-radius:28px;   /* sensación de marco de teléfono */
+}
+
+/* Botón central como pausa */
+.pad-btn.pause{
+  background:#fff5d9;           /* tono “warning” suave */
+  font-size:18px;
+  font-weight:700;
+}
+
+/* (opcional) ocultar scroll horizontal en pantallas chicas */
+html, body { overflow-x: hidden; }
+
+.SwitchRoot[data-state="checked"] {
+  background-color: #7c5ce4;
+}
+
+.SwitchThumb {
+  display: block;
+  width: 21px;
+  height: 21px;
+  background-color: white;
+  border-radius: 9999px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15);
+  transition: transform 100ms;
+  transform: translateX(2px);
+}
+.SwitchThumb[data-state="checked"] {
+  transform: translateX(19px);
+}
+
+/* ===== Header compacto estilo mobile ===== */
+.hc-header{
+  display:grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items:center;
+  height:56px;
+  background: #eee7f6;
+  border: 1px solid #ded2f1;
+  border-radius: 16px;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+}
+
+.hc-left{ display:grid; place-items:center; }
+
+.hc-avatar{
+  width: 32px; height: 32px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+.hc-avatar--placeholder{
+  background: linear-gradient(135deg, #d9d2ea, #efe9fb);
+  border: 1px solid #d5caef;
+}
+
+.hc-title{
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #3b3355;
+  line-height: 1;
+}
+
+.hc-iconbtn{
+  width: 40px; height: 40px;
+  border: 0; background: #e9e1f4;
+  border-radius: 12px;
+  display:grid; place-items:center;
+  cursor: pointer;
+}
+
+.hc-burger{
+  display:flex; flex-direction:column; gap:4px;
+}
+.hc-burger i{
+  display:block; width:18px; height:2px; background:#6a5c88; border-radius:2px;
+}
+
+/* Status strip */
+.status-strip {
+  display:flex; align-items:center; gap:12px;
+  padding:8px 12px; border-radius:12px;
+  background:#0f172a; color:#e5e7eb;  /* dark */
+  overflow:auto; white-space:nowrap;
+}
+.status-strip .chip {
+  padding:4px 8px; border-radius:999px; font-size:.85rem; background:#1f2937;
+}
+.status-strip .chip.ok { background:#10b981; color:#062e22; font-weight:600; }

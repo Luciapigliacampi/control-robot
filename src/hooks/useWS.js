@@ -1,147 +1,201 @@
+// src/hooks/useWS.js
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const WS_URL = import.meta.env.VITE_WS_URL;
+const WS_URL  = import.meta.env.VITE_WS_URL;           // ej: ws://localhost:3000/ws
+const API_URL = import.meta.env.VITE_API_URL || "";    // ej: http://localhost:3000
 
 export default function useWS() {
-  const wsRef = useRef(null);
-  const hbRef = useRef(null);
+  // --- refs & estado ---
+  const wsRef    = useRef(null);
+  const hbRef    = useRef(null);
   const retryRef = useRef(0);
-  const closedRef = useRef(false);
+  const stopped  = useRef(false);
 
-  const [connected, setConnected] = useState(false);
-  const [latencyMs, setLatencyMs] = useState(null);
+  const [connected, setConnected]   = useState(false);
+  const [latencyMs, setLatencyMs]   = useState(null);
 
-  // Estado que consumen tus pantallas
-  const [telemetry, setTelemetry] = useState(null);     // { status, mode, battery, mast, ... }
-  const [snapshot, setSnapshot]   = useState(null);     // { url, ts, type, description }
-  const [steps, setSteps]         = useState([]);       // [{ id, text, done }]
+  // Telemetría/vision tal como la UI la consume
+  const [telemetry, setTelemetry] = useState(null);      // {battery, status, mode, mast, power, ...}
+  const [snapshot,  setSnapshot]  = useState(null);      // {snapshotUrl|url, ts, boxes?}
+  const [steps,     setSteps]     = useState([]);        // (lo mantenemos por compat)
 
-  // --- envío genérico ---
-  const _send = useCallback((obj) => {
-    const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
+  // --- util: cerrar socket de forma segura ---
+  const safeClose = useCallback((reason) => {
+    const s = wsRef.current;
+    if (!s) return;
+    if (s.readyState === WebSocket.CLOSING || s.readyState === WebSocket.CLOSED) return;
+    try { s.close(); } catch (e) { /* no-op */ }
+    // console.debug("[WS] closed", reason || "");
   }, []);
 
-  // Un solo formato de comando, alineado al esquema del equipo
-  const sendCommand = useCallback(({ robotId, task, value }) => {
-    const payload = { type: "command", robotId, source: "web_rc", task };
-    if (value !== undefined) payload.value = value;
+  // --- util: enviar JSON si el socket está abierto ---
+  const _send = useCallback((obj) => {
+    const s = wsRef.current;
+    if (!s || s.readyState !== WebSocket.OPEN) return;
+    try { s.send(JSON.stringify(obj)); } catch (e) { /* no-op */ }
+  }, []);
+
+  // === API para la UI ===
+
+  // 1) Mandar un comando discreto (movimiento, power, etc.)
+  //    Ej: sendControl("move_forward", { value: 20 }, "R1")
+  const sendControl = useCallback((task, args = {}, robotId) => {
+    // compat con el server que lee "value" toplevel
+    const payload = {
+      type:   "command",
+      source: "web_ui",
+      robotId,
+      task,
+      // si te pasan {value: 10} en args, lo exponemos también a toplevel
+      ...(typeof args?.value !== "undefined" ? { value: args.value } : {}),
+      // y mandamos el objeto entero por si el backend lo usa
+      args
+    };
     _send(payload);
   }, [_send]);
 
-  // Helpers de más alto nivel que usa tu UI
-  const sendControl = useCallback((task, params = {}, robotId) => {
-    // task: move_forward|move_backward|turn_left|turn_right|turn_degrees|stop|lift_up|lift_down|lift_stop
-    // params.value (opcional): p. ej. cm o grados
-    sendCommand({ robotId, task, value: params.value });
-  }, [sendCommand]);
-
+  // 2) Cambiar modo (manda dos variantes por compatibilidad de server anteriores)
   const setMode = useCallback((value, robotId) => {
-    // value: "auto" | "manual"
-    sendCommand({ robotId, task: "change_mode", value });
-  }, [sendCommand]);
+    // variante nueva: un command explícito
+    sendControl("change_mode", { value }, robotId);
+    // variante vieja: algunos servers escuchaban {type:"mode", value}
+    _send({ type: "mode", robotId, value });
+  }, [sendControl, _send]);
 
-  const requestPhoto = useCallback((robotId) => {
-    sendCommand({ robotId, task: "capture_image" });
-  }, [sendCommand]);
+  // 3) Pedir captura al robot (si tu backend/robot la soporta)
+  const captureImage = useCallback((robotId) => {
+    sendControl("capture_image", {}, robotId);
+  }, [sendControl]);
 
-  // --- ciclo de vida WS ---
+  // 4) Subir imagen a la API (flujo Tomás – IA/QR/R2). FormData multipart.
+  //    file: un File (input type="file" o canvas blob)
+  //    endpoint por defecto: /api/images/analyze (análisis completo)
+  const uploadImage = useCallback(async (file, endpoint = "/api/images/analyze") => {
+    if (!API_URL) throw new Error("Falta VITE_API_URL en .env");
+    const fd = new FormData();
+    fd.append("image", file);
+    const res = await fetch(`${API_URL}${endpoint}`, { method: "POST", body: fd });
+    if (!res.ok) throw new Error(`Upload fail (${res.status})`);
+    return res.json();
+  }, []);
+
+  // === Conexión WS con reconexión & heartbeat ===
   useEffect(() => {
-    async function open() {
+    stopped.current = false;
+
+    function connect() {
+      if (stopped.current) return;
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
 
-      ws.onopen = () => {
+      ws.addEventListener("open", () => {
         setConnected(true);
         retryRef.current = 0;
-        // heartbeat/ping cada 10s
+
+        // heartbeat cada 10s
         hbRef.current = setInterval(() => {
           const t0 = Date.now();
-          _send({ type: "ping", t0 });
+          try {
+            ws.send(JSON.stringify({ type: "ping", t0 }));
+          } catch (e) {
+            safeClose("ping send failed");
+          }
         }, 10000);
-      };
+      });
 
-      ws.onmessage = (ev) => {
-        let msg; try { msg = JSON.parse(ev.data); } catch { return; }
+      ws.addEventListener("message", (ev) => {
+        let msg;
+        try { msg = JSON.parse(ev.data); } catch { return; }
 
         switch (msg.type) {
+          // compat con nuestro backend de ejemplo:
           case "pong":
             if (msg.t0) setLatencyMs(Date.now() - msg.t0);
             break;
 
-          // Telemetría del robot (nuevo nombre)
+          // el server que puentea MQTT → WS manda esto
           case "robot_status":
-            // msg: { type, robotId, status, mode, battery, mast, camera, ultrasonic, currentTask, timestamp, ... }
-            setTelemetry(msg);
+            // ejemplo de estado del simulador:
+            // {battery, status, mode, mast, power, timestamp, ...}
+            setTelemetry((prev) => ({ ...(prev || {}), ...msg }));
             break;
 
-          // Compatibilidad por si todavía envían "telemetry"
+          // algunos backends envían "telemetry" como nombre
           case "telemetry":
-            setTelemetry(msg);
+            setTelemetry((prev) => ({ ...(prev || {}), ...msg }));
             break;
 
-          // Nueva imagen según el esquema (images)
-          case "image":
-            // msg: { type:"image", robotId, url, timestamp, imageType, description }
-            setSnapshot({ url: msg.url, ts: msg.timestamp, type: msg.imageType, description: msg.description });
-            break;
-
-          // Compatibilidad con el viejo evento "vision"
+          // visión/capturas
           case "vision":
-            setSnapshot({ url: msg.snapshotUrl, ts: msg.ts, type: msg.type || "vision", description: msg.description });
+          case "snapshot":
+            setSnapshot({
+              snapshotUrl: msg.snapshotUrl || msg.url || null,
+              ts: msg.ts || Date.now(),
+              boxes: msg.boxes || null
+            });
             break;
 
-          // Lista de comandos/pasos planificados o recientes
-          case "commands": {
-            // msg.items: [{ _id, task, value, status, timestamp }]
-            const mapped = (msg.items || []).map(c => ({
-              id: c._id || c.id || String(c.timestamp || Math.random()),
-              text: c.value !== undefined ? `${c.task} (${c.value})` : c.task,
-              done: String(c.status || "").toLowerCase().includes("done") ||
-                    String(c.status || "").toLowerCase().includes("completed")
-            }));
-            setSteps(mapped);
-            break;
-          }
-
-          // Compatibilidad si el back emite "steps"
+          // listado de pasos (si más adelante lo vuelven a usar)
           case "steps":
-            setSteps(msg.items || []);
+            setSteps(Array.isArray(msg.items) ? msg.items : []);
             break;
 
           case "ack":
-            // TODO: mostrar toast si querés
+            // opcional: mostrar toast / feedback
             break;
 
-          default: break;
+          default:
+            // console.debug("[WS] msg", msg);
+            break;
         }
-      };
+      });
 
-      ws.onclose = () => {
+      ws.addEventListener("error", (ev) => {
+        // console.error("[WS] error", ev);
+        safeClose("onerror");
+      });
+
+      ws.addEventListener("close", () => {
         setConnected(false);
-        if (hbRef.current) clearInterval(hbRef.current);
-        if (!closedRef.current) {
+        if (hbRef.current) {
+          clearInterval(hbRef.current);
+          hbRef.current = null;
+        }
+        if (!stopped.current) {
+          // backoff exponencial + jitter
           const tries = Math.min(retryRef.current + 1, 6);
           retryRef.current = tries;
           const delay = Math.pow(2, tries) * 500 + Math.random() * 300;
-          setTimeout(open, delay);
+          setTimeout(connect, delay);
         }
-      };
-
-      ws.onerror = () => { try { ws.close(); } catch {} };
+      });
     }
 
-    open();
+    connect();
+
     return () => {
-      closedRef.current = true;
-      if (hbRef.current) clearInterval(hbRef.current);
-      if (wsRef.current) wsRef.current.close();
+      stopped.current = true;
+      if (hbRef.current) {
+        clearInterval(hbRef.current);
+        hbRef.current = null;
+      }
+      safeClose("unmount");
     };
-  }, [_send, sendCommand]);
+  }, [safeClose]);
 
   return {
-    connected, latencyMs,
-    telemetry, snapshot, steps, setSteps,
-    sendControl, setMode, requestPhoto
+    // estado
+    connected,
+    latencyMs,
+    telemetry,
+    snapshot,
+    steps,
+    setSteps,
+
+    // acciones
+    sendControl,
+    setMode,
+    captureImage,
+    uploadImage
   };
 }

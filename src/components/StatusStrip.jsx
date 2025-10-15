@@ -1,13 +1,22 @@
-export default function StatusStrip({ status, mode, battery, mast, latencyMs }) {
-  const tone = latencyMs == null ? "badge" : latencyMs < 120 ? "badge ok" : latencyMs < 250 ? "badge warn" : "badge err";
+// src/components/StatusStrip.jsx
+export default function StatusStrip({
+  battery = "--",
+  status = "--",
+  mode = "--",
+  mast = "--",
+  latencyMs = null,
+  onSos,
+}) {
+  const ms = Number.isFinite(latencyMs) ? `${latencyMs} ms` : "— ms";
+
   return (
-    <div className="hstack">
-      <span className="badge ok">SOS</span>
-      <span className="small">Batería: <b>{battery ?? "--"}%</b></span>
-      <span className="small">Estado: <b>{status ?? "--"}</b></span>
-      <span className="small">Modo: <b>{mode ?? "--"}</b></span>
-      <span className="small">Torre: <b>{mast ?? "--"}</b></span>
-      <span className={tone}>{latencyMs ?? "—"} ms</span>
+    <div className="status-strip">
+      <button type="button" className="chip ok" onClick={onSos}>SOS</button>
+      <span>Batería: <strong>{battery}%</strong></span>
+      <span>Estado: <strong>{status}</strong></span>
+      <span>Modo: <strong>{mode}</strong></span>
+      <span>Torre: <strong>{mast}</strong></span>
+      <span className="chip">{ms}</span>
     </div>
   );
 }

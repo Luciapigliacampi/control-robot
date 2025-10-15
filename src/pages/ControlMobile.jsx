@@ -1,180 +1,172 @@
-import { useEffect, useState, useCallback } from "react";
-import useWS from "../hooks/useWS.js";
-import Hamburger from "../components/Hamburger.jsx";
-import StatusStrip from "../components/StatusStrip.jsx";
-import StepList from "../components/StepList.jsx";
-import ControlPad from "../components/ControlPad.jsx";
-import Joystick from "../components/Joystick.jsx";
-import EstopButton from "../components/EstopButton.jsx";
+import { useEffect, useState } from "react";
+import useApi from "../hooks/useApi.js";          // HTTPS + SSE
+import Header from "../components/Header.jsx";
+import PowerSwitch from "../components/PowerSwitch.jsx";
 
 export default function ControlMobile() {
-    const robotId = "R1"; // o seleccionable si tienen múltiples
-    const {
-        connected, latencyMs, telemetry, snapshot, steps, setSteps,
-        sendControl, setMode, requestPhoto
-    } = useWS();
+  const robotId = "R1";
+  const { connected, latencyMs, telemetry, snapshot, sendControl, setMode } = useApi();
 
-    const [mode, setLocalMode] = useState("manual");
-    const [useJoystick, setUseJoystick] = useState(false);
+  const [mode, setLocalMode] = useState("manual");
+  useEffect(() => { if (telemetry?.mode) setLocalMode(telemetry.mode); }, [telemetry?.mode]);
 
-    useEffect(() => { if (telemetry?.mode) setLocalMode(telemetry.mode); }, [telemetry?.mode]);
+  // ---- POWER: estado optimista + sincronía con telemetría ----
+  const [powerLocal, setPowerLocal] = useState("off");
+  const [powerPending, setPowerPending] = useState(false);
 
-    // Cambia modo -> task: change_mode
-    const toggleMode = () => {
-        const next = mode === "auto" ? "manual" : "auto";
-        setLocalMode(next);
-        setMode(next, robotId);
-    };
-
-    // --- MAPEO: PAD (tu ControlPad viejo llama "move" y "fork") ---
-    const onPadCmd = useCallback((cmd, args = {}) => {
-        if (cmd === "move") {
-            const { v = 0, omega = 0 } = args;
-            if (v > 0) return sendControl("move_forward", { value: 20 }, robotId);
-            if (v < 0) return sendControl("move_backward", { value: 20 }, robotId);
-            if (omega > 0) return sendControl("turn_right", {}, robotId);
-            if (omega < 0) return sendControl("turn_left", {}, robotId);
-            return sendControl("stop", {}, robotId);
-        }
-        if (cmd === "fork") {
-            const { deltaMm = 0 } = args;
-            if (deltaMm > 0) return sendControl("lift_up", {}, robotId);
-            if (deltaMm < 0) return sendControl("lift_down", {}, robotId);
-            return sendControl("lift_stop", {}, robotId);
-        }
-    }, [sendControl]);
-
-    // --- MAPEO: JOYSTICK a tasks discretas ---
-    const onVector = useCallback(({ v, omega }) => {
-        const T = 0.2; // umbral
-        if (Math.abs(v) > Math.abs(omega)) {
-            if (v > T) return sendControl("move_forward", { value: 10 }, robotId);
-            if (v < -T) return sendControl("move_backward", { value: 10 }, robotId);
-        } else {
-            if (omega > T) return sendControl("turn_degrees", { value: 10 }, robotId);
-            if (omega < -T) return sendControl("turn_degrees", { value: -10 }, robotId);
-        }
-        return sendControl("stop", {}, robotId);
-    }, [sendControl]);
-
-    function addStep() {
-        const id = crypto.randomUUID();
-        setSteps(prev => [...prev, { id, text: "Nuevo paso", done: false }]);
+  useEffect(() => {
+    if (telemetry?.power && !powerPending) {
+      setPowerLocal(telemetry.power); // "on" | "off"
     }
-    function toggleStep(id) { setSteps(prev => prev.map(s => s.id === id ? ({ ...s, done: !s.done }) : s)); }
-    function clearSteps() { setSteps([]); }
+  }, [telemetry?.power, powerPending]);
 
-    // arriba de la función return, después de los hooks:
-    const power = telemetry?.power ?? "on"; // default "on" si no llega
-    const togglePower = () => {
-        const next = power === "on" ? "off" : "on";
-        // enviamos una task discreta por WS
-        sendControl(next === "on" ? "power_on" : "power_off", {}, robotId);
-    };
+  const onTogglePower = async (nextChecked) => {
+    const next = nextChecked ? "on" : "off";
+    setPowerLocal(next);        // optimista
+    setPowerPending(true);
+    try {
+      await sendControl(next === "on" ? "power_on" : "power_off", {}, robotId);
+      // si la telemetría tarda, liberamos igualmente
+      setTimeout(() => setPowerPending(false), 1200);
+    } catch (e) {
+      // rollback si falla
+      setPowerLocal(prev => (prev === "on" ? "off" : "on"));
+      setPowerPending(false);
+      console.error("power toggle failed:", e);
+    }
+  };
 
+  // ---- resto de acciones ----
+  const isAuto  = mode === "auto";
+  const running = telemetry?.status === "running";
+  const paused  = telemetry?.status === "paused";
 
+  const toggleMode = () => {
+    const next = mode === "auto" ? "manual" : "auto";
+    setLocalMode(next);
+    setMode(next, robotId);
+  };
 
-    return (
-        <div className="vstack">
-            {/* Top */}
-            <div className="mobile-top">
-                <div className="hstack"><Hamburger onClick={() => alert("Menú")} /><strong>LiftCore</strong></div>
-                <StatusStrip
-                    status={telemetry?.status}
-                    mode={telemetry?.mode}
-                    battery={telemetry?.battery}
-                    mast={telemetry?.mast}
-                    latencyMs={latencyMs}
-                />
-            </div>
+  const go    = () => sendControl("move_forward", {}, robotId);
+  const back  = () => sendControl("move_backward", {}, robotId);
+  const left  = () => sendControl("turn_left", {}, robotId);
+  const right = () => sendControl("turn_right", {}, robotId);
+  const pause = () =>
+    (isAuto && running) ? sendControl("pause_route", {}, robotId)
+                        : sendControl("stop", {}, robotId);
 
-            {/* Tabs + acciones */}
-            <div className="tabbar">
-                <button className={`btn tab ${mode === "auto" ? "primary" : ""}`} onClick={toggleMode}>Automático</button>
-                <button className={`btn tab ${mode === "manual" ? "primary" : ""}`} onClick={toggleMode}>Manual</button>
+  const startLift = (cmd) => (e) => { e.preventDefault(); sendControl(cmd, {}, robotId); };
+  const stopLift  = (e) => { e.preventDefault(); sendControl("lift_stop", {}, robotId); };
+  const tiltForward  = () => sendControl("tilt_forward", {}, robotId);
+  const tiltBackward = () => sendControl("tilt_backward", {}, robotId);
+  const takePhoto    = () => sendControl("capture_image", {}, robotId);
 
-                {/* NUEVO: Encender/Apagar */}
-                <button
-                    className="btn"
-                    onClick={togglePower}
-                    title={power === "on" ? "Apagar robot" : "Encender robot"}
-                    style={{ marginLeft: 8 }}
-                >
-                    {power === "on" ? "Apagar" : "Encender"}
-                </button>
+  const onPrimary = () => {
+    if (!isAuto) return;
+    if (running) return sendControl("stop", {}, robotId);
+    if (paused)  return sendControl("resume_route", {}, robotId);
+    return sendControl("start_route", {}, robotId);
+  };
 
-                <button className="btn" onClick={() => sendControl("capture_image", {}, robotId)}>📷</button>
+  // ---- datos de UI ----
+  const battery = telemetry?.battery ?? "--";
+  const status  = telemetry?.status  ?? "--";
+  const mast    = telemetry?.mast    ?? "--";
+  const ms      = Number.isFinite(latencyMs) ? `${latencyMs} ms` : "— ms";
+  const imageDesc = snapshot?.description || telemetry?.currentTask || "—";
 
-            </div>
+  return (
+    <div className="screen">
+      <Header title="LiftCore" onMenu={() => alert("Menú")} />
 
+      <div className="status-strip">
+        <span className="chip ok">SOS</span>
+        <span>Batería: <strong>{battery}%</strong></span>
+        <span>Estado: <strong>{status}</strong></span>
+        <span>Modo: <strong>{mode}</strong></span>
+        <span>Torre: <strong>{mast}</strong></span>
+        <span className="chip">{ms}</span>
+      </div>
 
-            {/* Ruta autónoma */}
-            <div className="card vstack">
-                <h3 style={{ margin: 0 }}>Ruta Autónoma</h3>
-                <div className="hstack" style={{ gap: 8 }}>
-                    <button className="btn primary" onClick={() => sendControl("load", {}, robotId)}>Iniciar</button>
-                    <button className="btn" onClick={() => sendControl("unload", {}, robotId)}>Finalizar</button>
-                </div>
-                <span className="small">WS: {connected ? "Conectado" : "Cortado"}</span>
-            </div>
+      <div className="row spaced">
+        {/* OJO: PowerSwitch usa onChange, no onCheckedChange */}
+        <PowerSwitch
+          checked={powerLocal === "on"}
+          onChange={onTogglePower}
+          disabled={powerPending}
+        />
 
-            {/* Percepción + Pasos */}
-            <div className="grid grid-2">
-                <div className="card vstack">
-                    <h3 style={{ margin: 0 }}>Percepción</h3>
-                    <div className="snapshot">
-                        {snapshot?.snapshotUrl
-                            ? <img src={snapshot.snapshotUrl} alt="Última captura" style={{ width: "100%" }} />
-                            : <span className="small">Sin imagen</span>}
-                    </div>
-                    <div className="small">Tarea actual: {telemetry?.currentTask ?? "—"}</div>
-                </div>
-
-                <StepList steps={steps} onToggle={toggleStep} onAdd={addStep} onClear={clearSteps} />
-            </div>
-
-            {/* Controles: joystick o pad */}
-            <div className="hstack" style={{ justifyContent: "space-between" }}>
-                <div className="hstack">
-                    <button className="btn" onClick={() => setUseJoystick(false)} disabled={!useJoystick}>Botones</button>
-                    <button className="btn" onClick={() => setUseJoystick(true)} disabled={useJoystick}>Joystick</button>
-                </div>
-                <div className="hstack">
-                    <button
-                        className="btn"
-                        onMouseDown={() => sendControl("lift_up", {}, robotId)}
-                        onMouseUp={() => sendControl("lift_stop", {}, robotId)}
-                        onTouchStart={() => sendControl("lift_up", {}, robotId)}
-                        onTouchEnd={() => sendControl("lift_stop", {}, robotId)}
-                    >
-                        Fork +
-                    </button>
-
-                    <button
-                        className="btn"
-                        onMouseDown={() => sendControl("lift_down", {}, robotId)}
-                        onMouseUp={() => sendControl("lift_stop", {}, robotId)}
-                        onTouchStart={() => sendControl("lift_down", {}, robotId)}
-                        onTouchEnd={() => sendControl("lift_stop", {}, robotId)}
-                    >
-                        Fork −
-                    </button>
-                </div>
-
-            </div>
-
-            {useJoystick ? <Joystick onVector={onVector} /> : <ControlPad onCmd={onPadCmd} />}
-
-            {/* Bottom nav (decorativo/MVP) */}
-            {/* <div className="bottom-nav">
-        <button className="btn">🏠</button>
-        <button className="btn">⏺</button>
-        <button className="btn">≡</button>
-        <button className="btn">❗</button>
-      </div> */}
-
-            {/* E-STOP -> stop */}
-            <EstopButton onClick={() => sendControl("stop", {}, robotId)} />
+        <div className="segmented">
+          <button className={`seg ${isAuto ? "active" : ""}`} onClick={() => !isAuto && toggleMode()}>
+            Automático
+          </button>
+          <button className={`seg ${!isAuto ? "active" : ""}`} onClick={() => isAuto && toggleMode()}>
+            Manual
+          </button>
         </div>
-    );
+
+        <button className="icon-btn" onClick={takePhoto} title="Tomar foto">📷</button>
+      </div>
+
+      <section className="card">
+        <div className="snapshot">
+          {snapshot?.snapshotUrl ? (
+            <img src={snapshot.snapshotUrl} alt="Última captura" />
+          ) : (
+            <div className="placeholder" />
+          )}
+        </div>
+        <div className="caption">{imageDesc}</div>
+      </section>
+
+      <section className="card mini">
+        <div className="mini-left">⚠️</div>
+        <div className="mini-mid">
+          <div className="metric">Paso</div>
+          <div className="muted">{telemetry?.currentTask ?? "—"}</div>
+        </div>
+      </section>
+
+      <section className="pad">
+        <button className="pad-btn up" onClick={go}>▲</button>
+        <div className="pad-middle">
+          <button className="pad-btn left" onClick={left}>◀</button>
+          <button className="pad-btn pause" onClick={pause}>⏸</button>
+          <button className="pad-btn right" onClick={right}>▶</button>
+        </div>
+        <button className="pad-btn down" onClick={back}>▼</button>
+      </section>
+
+      <div className="row two">
+        <button className="btn"
+          onPointerDown={startLift("lift_up")}
+          onPointerUp={stopLift}
+          onPointerCancel={stopLift}
+          onPointerLeave={stopLift}
+        >SUBIR TORRE</button>
+
+        <button className="btn"
+          onPointerDown={startLift("lift_down")}
+          onPointerUp={stopLift}
+          onPointerCancel={stopLift}
+          onPointerLeave={stopLift}
+        >BAJAR TORRE</button>
+      </div>
+
+      <div className="row two">
+        <button className="btn" onClick={tiltForward}>INCLINAR ↑</button>
+        <button className="btn" onClick={tiltBackward}>INCLINAR ↓</button>
+      </div>
+
+      <button className="btn primary block" disabled={!isAuto} onClick={onPrimary}>
+        {running ? "PARAR" : (paused ? "REANUDAR" : "INICIAR")}
+      </button>
+
+      <button className="estop" onClick={() => sendControl("stop", {}, robotId)}>E-STOP</button>
+
+      <div className="muted small" style={{ marginTop: 8 }}>
+        Stream: {connected ? "Conectado" : "Cortado"}
+      </div>
+    </div>
+  );
 }
