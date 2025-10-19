@@ -160,3 +160,67 @@ html, body { overflow-x: hidden; }
   padding:4px 8px; border-radius:999px; font-size:.85rem; background:#1f2937;
 }
 .status-strip .chip.ok { background:#10b981; color:#062e22; font-weight:600; }
+
+.hc-header {
+/* Es necesario que sea 'relative' para que el menú 'absolute' se posicione correctamente /
+position: relative;
+/ El resto de estilos de grid... */
+}
+
+.hc-menu {
+position: absolute;
+top: 56px; /* Ajustar para que caiga debajo del header /
+right: 8px; / Alinear con el botón /
+z-index: 1000;
+width: 180px;
+background-color: var(--card, #ffffff); / Usar tu color de fondo de tarjeta */
+border-radius: 12px;
+box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+padding: 8px;
+display: flex;
+flex-direction: column;
+}
+
+.hc-menu-item {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 10px 12px;
+border: none;
+background: none;
+cursor: pointer;
+font-size: 14px;
+font-weight: 600;
+color: var(--ink, #2a2340);
+border-radius: 8px;
+text-align: left;
+transition: background-color 0.15s;
+}
+
+.hc-menu-item:hover {
+background-color: var(--brand-weak, #ede8ff);
+}
+
+.btn, .icon-btn, .seg, .pad-btn {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+}
+
+/* Efecto de clic: Achicar ligeramente el elemento cuando se presiona */
+.btn:active, 
+.icon-btn:active, 
+.seg:active,
+.pad-btn:active {
+    transform: scale(0.95); /* Reduce el tamaño al 95% */
+    opacity: 0.85;          /* Ligeramente más transparente */
+}
+
+/* Asegurar que los botones deshabilitados no tengan animación */
+.btn:disabled:active, 
+.icon-btn:disabled:active, 
+.seg:disabled:active,
+.pad-btn:disabled:active {
+    transform: scale(1); /* Deshabilita el achicamiento */
+    opacity: 1; 
+    cursor: not-allowed;
+}
+
