@@ -1,4 +1,4 @@
-/* ====== Reset mín. y layout base ====== */
+====== Reset mín. y layout base ======
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
@@ -115,3 +115,196 @@ strong { font-weight: 700; }
   font-size: 12px;
 }
 .badge.ok { background: #10b98122; border-color: #10b98155; color: #b6f4da; }
+
+.pad-top-row {
+  display: grid;
+  grid-template-columns: 64px 64px 64px;
+  gap: 10px;
+  align-items: center;
+}
+
+.pad {
+  display: grid;
+  grid-template-columns: 48px 48px 48px;
+  grid-template-rows: 48px 48px 48px;
+  gap: 8px;
+}
+.pad-btn {
+  width: 64px;
+  height: 48px;
+  border-radius: 12px;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  font-size: 18px;
+  transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+}
+.pad-btn:active {
+  transform: scale(0.95);
+  opacity: 0.85;
+}
+.pad-btn:disabled:active {
+  transform: scale(1);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.pad-btn.pause {
+  background: #fff5d9;
+  font-weight: 700;
+}
+
+/* Fila superior del pad: vacío | arriba | cámara */
+.pad-top-row{
+  display:grid;
+  grid-template-columns:64px 64px 64px;
+  gap:10px;
+  align-items:center;
+  justify-content:center; /* centra el conjunto */
+}
+
+/* Grilla 2x2 de torre/inclinación — misma “caja” que el pad direccional */
+.tower-grid{
+  display:grid;
+  grid-template-columns:repeat(2,64px);
+  grid-auto-rows:48px;
+  gap:12px;
+  justify-content:center;
+  margin-top:8px;
+}
+
+/* Asegura que torre e inclinación tengan EXACTA apariencia del pad */
+.tower-grid .pad-btn{
+  width:64px;
+  height:48px;
+  border-radius:12px;
+  border:0;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition: transform .1s ease-out, opacity .1s ease-out;
+}
+.tower-grid .pad-btn:active{
+  transform:scale(.95);
+  opacity:.85;
+}
+.tower-grid .pad-btn:disabled:active{
+  transform:scale(1);
+  opacity:1;
+  cursor:not-allowed;
+}
+
+/* Snapshot: proporción estable, borde redondeado y “placeholder” prolijo */
+.snapshot{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;         /* queda igual al mock */
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: repeating-linear-gradient(
+    135deg,
+    #f3f4f6 0 24px,
+    #eeeeff 24px 48px
+  );
+}
+.snapshot img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display:block;
+}
+.placeholder{
+  width: 100%;
+  height: 100%;
+}
+.caption{
+  margin-top: 8px;
+  color: var(--muted-ink);
+  font-size: 14px;
+}
+
+/* Separaciones de secciones para parecerse al mock */
+.row.spaced{ 
+  margin-bottom: var(--space-3);
+}
+.card + .pad{
+  margin-top: var(--space-2);
+}
+
+/* PAD direccional – botones con misma “caja” que el mock */
+.pad{
+  display:grid;
+  grid-template-rows: auto auto auto;
+  justify-items:center;
+  gap: 12px;                     /* más respiro */
+  margin: 12px 0 6px;
+}
+.pad-middle{
+  display:grid;
+  grid-template-columns: repeat(3,64px);
+  gap:12px;
+}
+
+/* Fila superior: vacío | ▲ | cámara (igual al boceto) */
+.pad-top-row{
+  display:grid;
+  grid-template-columns: 64px 64px 64px;
+  gap:12px;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Botones “pill” del pad */
+.pad-btn{
+  width:64px;
+  height:48px;
+  border-radius: var(--radius-lg);
+  border: 0;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  transition: transform .1s ease-out, opacity .1s ease-out;
+}
+.pad-btn:active{ transform: scale(.96); opacity:.9; }
+.pad-btn:disabled:active{ transform:none; opacity:1; }
+
+/* Botón centro “estado” con un leve highlight (como en tu captura 2) */
+.pad-btn.pause{
+  background: #fff7e6;
+  box-shadow: inset 0 0 0 1px rgba(251,191,36,.35), 0 1px 2px rgba(0,0,0,.06);
+}
+
+/* Grilla 2×2 para Torre e Inclinación (debajo del pad) */
+.tower-grid{
+  display:grid;
+  grid-template-columns: repeat(2,64px);
+  grid-auto-rows: 48px;
+  gap: 16px;
+  justify-content:center;
+  margin-top: 8px;
+}
+.tower-grid .pad-btn{
+  /* hereda el estilo del pad-btn para que queden idénticos */
+}
+
+/* Stream text como en el mock: pequeño y discreto */
+.muted.small{
+  color: var(--muted-ink);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.header-wrap{
+  background: #111827;             /* mismo fondo de tu header */
+  color:#fff;
+  border-radius: var(--radius-xl);
+  padding: 8px 12px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: var(--space-3);
+}
+

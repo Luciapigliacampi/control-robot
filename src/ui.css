@@ -1,5 +1,5 @@
 :root{
-  --bg:#f4eef6;
+  --bg:#89bad7;
   --card:#ffffff;
   --ink:#2a2340;
   --muted:#6b6780;
@@ -12,54 +12,132 @@
 html,body,#root{height:100%}
 body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
 
-.screen{max-width:420px;margin:0 auto;padding:12px 12px 80px}
+/* .screen{max-width:420px;margin:0 auto;padding:12px 12px 80px} */
 
-.topbar{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;height:48px}
+/* .topbar{display:grid;grid-template-columns:40px 1fr 40px;align-items:center;height:48px}
 .topbar .title{text-align:center;font-weight:600}
 .icon-btn{width:40px;height:40px;border:0;background:transparent;font-size:20px;border-radius:12px}
-.avatar{width:32px;height:32px;border-radius:999px;background:#d9d4e8;margin-left:4px}
+.avatar{width:32px;height:32px;border-radius:999px;background:#d9d4e8;margin-left:4px} */
 
-.status-strip{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;margin:6px 0 10px}
+/* .status-strip{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px;margin:6px 0 10px}
 .chip{padding:4px 8px;border-radius:999px;background:#e9e6f9}
-.chip.ok{background:#dff7ea}
+.chip.ok{background:#dff7ea} */
 
-.row{display:flex;gap:12px;align-items:center}
+/* .row{display:flex;gap:12px;align-items:center}
 .row.spaced{justify-content:space-between}
 .row.two{margin-top:8px}
-.row.two .btn{flex:1}
+.row.two .btn{flex:1} */
 
-.switch{position:relative;width:54px;height:24px;border-radius:999px;background:#e6e1f7;border:0;display:flex;align-items:center;padding-left:6px;gap:6px}
+/* .switch{position:relative;width:54px;height:24px;border-radius:999px;background:#e6e1f7;border:0;display:flex;align-items:center;padding-left:6px;gap:6px}
 .switch.on{background:var(--brand)}
 .switch .knob{width:16px;height:16px;border-radius:999px;background:#fff;transform:translateX(0);transition:.15s}
 .switch.on .knob{transform:translateX(28px)}
-.switch small{font-size:11px;color:var(--muted);margin-left:6px}
+.switch small{font-size:11px;color:var(--muted);margin-left:6px} */
 
-.segmented{display:flex;background:var(--brand-weak);border-radius:12px;padding:4px;gap:4px}
+/* .segmented{display:flex;background:var(--brand-weak);border-radius:12px;padding:4px;gap:4px}
 .seg{border:0;background:transparent;padding:8px 12px;border-radius:10px}
-.seg.active{background:#fff;color:#000;font-weight:600;box-shadow:0 0 0 1px #e2ddff inset}
+.seg.active{background:#fff;color:#000;font-weight:600;box-shadow:0 0 0 1px #e2ddff inset} */
 
-.card{background:var(--card);border-radius:16px;padding:12px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.06)}
-.snapshot{height:160px;border-radius:12px;background:#eee;overflow:hidden}
-.snapshot img{width:100%;height:100%;object-fit:cover}
-.placeholder{width:100%;height:100%;background:repeating-linear-gradient(45deg,#eee,#eee 10px,#f7f5fb 10px,#f7f5fb 20px)}
-.caption{margin-top:8px;color:var(--muted);font-size:14px}
+.card{
+  margin:12px 0;
+ }
 
-.card.mini{display:flex;align-items:center;gap:12px}
-.mini-left{font-size:22px}
-.metric{font-size:24px;font-weight:700}
+.snapshot{
+  height:200px;
+  border-radius:12px;
+  background:#eee;
+  overflow:hidden
+}
+
+.snapshot img{
+  width:100%;
+  height:100%;
+  object-fit:cover
+}
+
+.placeholder{
+  width:100%;
+  height:100%;
+  background:repeating-linear-gradient(45deg,#eee,#eee 10px,#f7f5fb 10px,#f7f5fb 20px)
+}
+
+.caption{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:14px
+}
+
+/* .card.mini{
+  display:flex;
+  align-items:center;
+  gap:12px
+} */
+
+/* .mini-left{
+  font-size:22px} */
+
+/* .metric{font-size:24px;font-weight:700} */
+
 .muted{color:var(--muted)}
+
 .small{font-size:12px}
 
-.pad{display:grid;grid-template-rows:auto auto auto;justify-items:center;gap:10px;margin:10px 0}
-.pad-middle{display:grid;grid-template-columns:repeat(3,64px);gap:10px}
-.pad-btn{width:64px;height:48px;border-radius:12px;border:0;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.06);font-size:18px}
-.pad-btn.stop{background:#ffe6e6}
+.pad{
+  display:grid;
+  grid-template-rows:auto auto auto;
+  justify-items:center;
+  gap:10px;
+  margin:10px 0
+}
 
-.btn{border:0;background:#eae6fb;padding:12px;border-radius:12px;font-weight:600}
-.btn.primary{background:var(--brand);color:#fff}
-.btn.block{width:100%;margin-top:12px}
+.pad-middle{
+  display:grid;
+  grid-template-columns:repeat(3,64px);
+  gap:10px
+}
 
-.estop{position:fixed;right:16px;bottom:16px;background:#ff5c67;border:0;color:#fff;border-radius:14px;padding:12px 16px;font-weight:800}
+.pad-btn
+{width:64px;
+  height:48px;
+  border-radius:12px;
+  border:0;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);font-size:18px
+}
+
+/* .pad-btn.stop{
+  background:#ffe6e6
+} */
+
+/* .btn{
+  border:0;
+  background:#eae6fb;
+  padding:12px;
+  border-radius:12px;
+  font-weight:600
+} */
+
+/* .btn.primary{
+  background:var(--brand);
+  color:#fff
+} */
+
+/* .btn.block{
+  width:100%;
+  margin-top:12px
+} */
+
+/* .estop{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+  background:#ff5c67;
+  border:0;
+  color:#fff;
+  border-radius:14px;
+  padding:12px 16px;
+  font-weight:800
+} */
 
 /* Forzar “phone” centrado siempre */
 body{background:#ece7f3;}
@@ -712,3 +790,113 @@ background-color: var(--brand-weak, #ede8ff);
 }
 
 /* ... (el resto de ui.css debe seguir) ... */
+
+.segmented {
+  display: flex;
+  background: var(--brand-weak);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  justify-content: center; /* centrado agregado */
+}
+
+:root{
+  --radius-xl: 16px;     /* card grande */
+  --radius-lg: 12px;     /* botones */
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 20px;
+  --muted-ink: #6b7280;
+  --card-bg: #ffffff;
+  --card-shadow: 0 8px 24px rgba(17, 24, 39, .08);
+}
+
+/* Contenedor principal */
+.screen{
+  padding: var(--space-4);
+}
+
+/* Tarjetas base (snapshot, mini, etc.) */
+.card{
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3);
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(31,41,55,.06);
+}
+
+/* Tarjeta compacta */
+.card.mini{
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+}
+
+/* Selector segmentado centrado y más “pill” */
+.segmented{
+  display: inline-flex;
+  align-items: center;
+  background: #f1eefb;
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  gap: 2px;
+  border: 1px solid rgba(31,41,55,.1);
+}
+.seg{
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: calc(var(--radius-lg) - 2px);
+  font-weight: 600;
+  color: #111827;
+}
+.seg.active{
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(0,0,0,.04), inset 0 0 0 1px rgba(0,0,0,.04);
+}
+
+/* === 1) Contenedor para centrar el segmentado === */
+.segmented-wrap{
+  width: 100%;
+  display: flex;
+  justify-content: center; /* ¡Centrado real! */
+}
+
+/* === 2) PAD-top con cámara a la izquierda === */
+.pad-top-row{
+  position: relative;        /* clave para posicionar la cámara */
+  width: 100%;
+  display: grid;
+  place-items: center;       /* centra el botón “arriba” */
+  margin-bottom: 8px;
+}
+/* Cámara pegada al borde IZQUIERDO de la pantalla */
+.pad-top-row .pad-btn.camera{
+  position: absolute;
+  left: 0;                   /* borde izquierdo de la pantalla */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* === 3) Fila de torre/inclinación a lo ancho (1x4) === */
+.tower-row{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* ocupa todo el ancho */
+  gap: 12px;
+  margin-top: 10px;
+}
+/* Botones ocupan su celda completa */
+.tower-row .pad-btn{
+  width: 100%;
+  height: 48px;              /* mismo alto que el pad */
+  border-radius: 12px;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: transform .1s ease-out, opacity .1s ease-out;
+}
+.tower-row .pad-btn:active{ transform: scale(.96); opacity:.9; }
+.tower-row .pad-btn:disabled:active{ transform:none; opacity:1; }
