@@ -1,12 +1,21 @@
 // src/hooks/useApi.js
 import { useCallback, useEffect, useRef, useState } from "react";
-import { postCommand, getStatus, getLastImage } from "../services/api.js";
+import { getStatus, getLastImage } from "../services/api.js";
 import { connectSSE } from "../services/sse.js";
+import {
+  sendMove,
+  sendTurn,
+  sendLift,
+  sendTilt,
+  setMode as apiSetMode,
+  startAuto as apiStartAuto,
+  stopAll as apiStopAll,
+  takePhoto as apiTakePhoto,
+} from "../services/commands.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export default function useApi() {
-  const robotId = "R1"; // o traelo de contexto/props
   const [connected, setConnected] = useState(false);
   const [latencyMs, setLatencyMs] = useState(null);
   const [telemetry, setTelemetry] = useState(null);
@@ -31,7 +40,9 @@ export default function useApi() {
     try {
       const data = await getStatus();
       if (data?.robot) setTelemetry(data.robot);
-    } catch {}
+    } catch {
+      // silencioso
+    }
   }, []);
 
   // --- SSE: new_image → pedir última por HTTP; obstacle → log ---
@@ -39,9 +50,11 @@ export default function useApi() {
     const disconnect = connectSSE({
       onOpen: () => setConnected(true),
       onError: () => setConnected(false),
+
       onTelemetry: (data) => {
         setTelemetry((prev) => ({ ...(prev || {}), ...data }));
       },
+
       onNewImage: async () => {
         try {
           const last = await getLastImage();
@@ -53,10 +66,12 @@ export default function useApi() {
           setLogs((L) => [{ level: "error", msg: "Error al traer la última imagen" }, ...L].slice(0, 50));
         }
       },
+
       onObstacle: (payload) => {
         setLogs((L) => [{ level: "warn", msg: "Obstáculo detectado", data: payload }, ...L].slice(0, 50));
       },
     });
+
     return disconnect;
   }, []);
 
@@ -73,37 +88,51 @@ export default function useApi() {
   }, [measureHealth, pullStatus]);
 
   // ===========================================================
-  // ✅ API de comandos (nuevo formato commandType / content)
+  // ✅ API de comandos (autodetección en services/commands.js)
   // ===========================================================
 
-  // Movimiento
-  const moveForward  = () => postCommand({ robotId, commandType: "move", content: { direction: "forward" } });
-  const moveBackward = () => postCommand({ robotId, commandType: "move", content: { direction: "backward" } });
-  const turnLeft     = () => postCommand({ robotId, commandType: "turn", content: { direction: "left" } });
-  const turnRight    = () => postCommand({ robotId, commandType: "turn", content: { direction: "right" } });
-  const stop         = () => postCommand({ robotId, commandType: "stop" });
+  // Movimiento (presionado: envía; al soltar, usar stop())
+  const moveForward  = () => sendMove("forward");
+  const moveBackward = () => sendMove("backward");
+  const turnLeft     = () => sendTurn("left");
+  const turnRight    = () => sendTurn("right");
+  const stop         = () => apiStopAll(); // alias a stopAll
 
-  // Torre
-  const liftUp       = () => postCommand({ robotId, commandType: "lift", content: { direction: "up" } });
-  const liftDown     = () => postCommand({ robotId, commandType: "lift", content: { direction: "down" } });
-  const tiltUp       = () => postCommand({ robotId, commandType: "tilt", content: { direction: "up" } });
-  const tiltDown     = () => postCommand({ robotId, commandType: "tilt", content: { direction: "down" } });
+  // Torre e inclinación
+  const liftUp   = () => sendLift("up");
+  const liftDown = () => sendLift("down");
+  const tiltUp   = () => sendTilt("up");
+  const tiltDown = () => sendTilt("down");
 
   // Modo + auto
-  const setMode      = (mode) => postCommand({ robotId, commandType: "mode", content: { mode } });
-  const startAuto    = () => postCommand({ robotId, commandType: "start" });
-  const stopAll      = () => postCommand({ robotId, commandType: "stop" });
+  const setMode   = (mode) => apiSetMode(mode); // "auto" | "manual"
+  const startAuto = () => apiStartAuto();
+  const stopAll   = () => apiStopAll();
 
   // Foto
-  const takePhoto    = () => postCommand({ robotId, commandType: "take_photo" });
+  const takePhoto = () => apiTakePhoto();
 
   // ===========================================================
 
   return {
-    connected, latencyMs, telemetry, snapshot, logs,
+    connected,
+    latencyMs,
+    telemetry,
+    snapshot,
+    logs,
     // comandos
-    moveForward, moveBackward, turnLeft, turnRight, stop,
-    liftUp, liftDown, tiltUp, tiltDown,
-    setMode, startAuto, stopAll, takePhoto,
+    moveForward,
+    moveBackward,
+    turnLeft,
+    turnRight,
+    stop,
+    liftUp,
+    liftDown,
+    tiltUp,
+    tiltDown,
+    setMode,
+    startAuto,
+    stopAll,
+    takePhoto,
   };
 }
