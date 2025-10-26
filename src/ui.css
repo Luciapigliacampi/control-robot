@@ -1,16 +1,43 @@
 :root{
-  --bg:#89bad7;
-  --card:#ffffff;
-  --ink:#2a2340;
-  --muted:#6b6780;
-  --brand:#7c5ce4;
-  --brand-weak:#ede8ff;
-  --ok:#38b26b;
+/* COLORES PRINCIPALES SOLICITADOS */
+ --bg: #30509e;         /* Fondo: Azul Claro */
+ --ink: #13192e;        /* Tinta/Texto/Elementos Oscuros: Azul Muy Oscuro */
+ --brand: #30509e;      /* Marca/Énfasis: Azul Oscuro */
+ 
+  /* COLORES SECUNDARIOS (Ajustados para el nuevo esquema) */
+ --card: #89bad7;
+ --muted: #4e6293;      /* Texto suave, basado en el nuevo esquema */
+ --brand-weak: #e0e5f2; /* Fondo débil de marca, ajustado para el azul */
+ --ok: #38b26b;         /* Mantener el verde OK */
+
+ /* COLORES DEL HEADER/MENU OSCURO (Ajustados para el Azul Oscuro) */
+ --header-bg: #13192e;      /* Fondo de header: Azul Muy Oscuro */
+ --header-border: #2c354e;  /* Borde de header */
+ --header-ink: #f0f3f6;    /* Tinta de header (blanco/claro) */
+ --menu-bg: #1b223a;       /* Fondo de menú dropdown */
+ --menu-border: #2c354e;   /* Borde de menú dropdown */
+--radius-xl: 16px; 
+ --radius-lg: 12px; 
+ --space-1: 8px;
+ --space-2: 12px;
+ --space-3: 16px;
+ --space-4: 20px;
+ --muted-ink: #6b7280;
+ --card-bg: #89bad7;
+ --card-shadow: 0 8px 24px rgba(17, 24, 39, .08);
 }
 
-*{box-sizing:border-box}
-html,body,#root{height:100%}
-body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+*{
+  box-sizing:border-box
+}
+html,body,#root{
+  height:100%
+}
+body{
+  margin:0;
+  font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink)}
 
 /* .screen{max-width:420px;margin:0 auto;padding:12px 12px 80px} */
 
@@ -43,10 +70,10 @@ body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;b
  }
 
 .snapshot{
-  height:200px;
+  height: clamp(240px, 35vh, 420px);
   border-radius:12px;
   background:#eee;
-  overflow:hidden
+  overflow:hidden;
 }
 
 .snapshot img{
@@ -101,7 +128,7 @@ body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;b
   height:48px;
   border-radius:12px;
   border:0;
-  background:#fff;
+  background:#89bad7;
   box-shadow:0 1px 2px rgba(0,0,0,.06);font-size:18px
 }
 
@@ -140,20 +167,19 @@ body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;b
 } */
 
 /* Forzar “phone” centrado siempre */
-body{background:#ece7f3;}
-.screen{
-  max-width:420px;      /* ancho móvil */
-  min-height:100vh;     /* ocupar alto de pantalla */
+.screen {
+  max-width:420px;
+  min-height:100vh;
   margin:0 auto;
-  padding:12px 12px 96px;
-  background:#f8f5fc;   /* fondo interior */
+  /* padding:12px 12px 96px; */
+  background:var(--bg); /* Usamos el blanco/tarjeta para el interior */
   box-shadow:0 6px 32px rgba(0,0,0,.12);
-  border-radius:28px;   /* sensación de marco de teléfono */
+  border-radius:28px;
 }
 
 /* Botón central como pausa */
 .pad-btn.pause{
-  background:#fff5d9;           /* tono “warning” suave */
+  background:#ec6722;           /* tono “warning” suave */
   font-size:18px;
   font-weight:700;
 }
@@ -185,9 +211,8 @@ html, body { overflow-x: hidden; }
   grid-template-columns: 40px 1fr 40px;
   align-items:center;
   height:56px;
-  background: #eee7f6;
-  border: 1px solid #ded2f1;
-  border-radius: 16px;
+  background: var(--header-bg); 
+  border: 1px solid var(--header-border);
   padding: 6px 8px;
   margin-bottom: 10px;
 }
@@ -208,7 +233,7 @@ html, body { overflow-x: hidden; }
   text-align: center;
   font-size: 18px;
   font-weight: 700;
-  color: #3b3355;
+  color: var(--header-ink); /* ✅ Usa variable: #f0f3f6 */
   line-height: 1;
 }
 
@@ -224,7 +249,8 @@ html, body { overflow-x: hidden; }
   display:flex; flex-direction:column; gap:4px;
 }
 .hc-burger i{
-  display:block; width:18px; height:2px; background:#6a5c88; border-radius:2px;
+ display:block; width:18px; height:2px; background:var(--header-ink); /* ✅ Usa variable: #f0f3f6 */
+ border-radius:2px;
 }
 
 /* Status strip */
@@ -404,7 +430,10 @@ background-color: var(--brand-weak, #ede8ff);
 }
 
 /* Asegurate que el contenedor sea posicionable */
-.screen { position: relative; padding-bottom: max(96px, env(safe-area-inset-bottom)); }
+.screen { 
+  position: relative; 
+  /* padding-bottom: max(96px, env(safe-area-inset-bottom));  */
+}
 
 /* Botón flotante relativo al panel */
 .estop.fab.local {
@@ -623,23 +652,6 @@ background-color: var(--brand-weak, #ede8ff);
 .profile-btn.danger { background: rgba(255, 62, 62, 0.18); }
 .profile-btn.danger:hover { background: rgba(255, 62, 62, 0.28); }
 
-:root{
- --bg:#f4eef6;
- --card:#ffffff;
- --ink:#2a2340;
- --muted:#6b6780;
- --brand:#7c5ce4;
- --brand-weak:#ede8ff;
- --ok:#38b26b;
-
- /* Nuevas variables para el Header oscuro/elegante */
- --header-bg: #1c1f24;
- --header-border: #2c3038;
- --header-ink: #f0f3f6; /* Color blanco/claro */
- --menu-bg: #21252c;
- --menu-border: #333842;
-}
-
 /* ... (otros estilos omitidos) ... */
 
 /* ==================================== */
@@ -654,7 +666,6 @@ background-color: var(--brand-weak, #ede8ff);
  height:56px;
  background: var(--header-bg); 
  border: 1px solid var(--header-border);
- border-radius: 16px;
  padding: 0 4px; 
  margin-bottom: 10px;
  position: relative;
@@ -800,9 +811,9 @@ background-color: var(--brand-weak, #ede8ff);
   justify-content: center; /* centrado agregado */
 }
 
-:root{
-  --radius-xl: 16px;     /* card grande */
-  --radius-lg: 12px;     /* botones */
+/* :root{
+  --radius-xl: 16px;     
+  --radius-lg: 12px;     
   --space-1: 8px;
   --space-2: 12px;
   --space-3: 16px;
@@ -810,7 +821,7 @@ background-color: var(--brand-weak, #ede8ff);
   --muted-ink: #6b7280;
   --card-bg: #ffffff;
   --card-shadow: 0 8px 24px rgba(17, 24, 39, .08);
-}
+} */
 
 /* Contenedor principal */
 .screen{
@@ -836,7 +847,7 @@ background-color: var(--brand-weak, #ede8ff);
 .segmented{
   display: inline-flex;
   align-items: center;
-  background: #f1eefb;
+  background: #89bad7;
   border-radius: var(--radius-lg);
   padding: 4px;
   gap: 2px;
@@ -852,7 +863,8 @@ background-color: var(--brand-weak, #ede8ff);
   color: #111827;
 }
 .seg.active{
-  background: #ffffff;
+  background: #13192e;
+  color: #f0f3f6;
   box-shadow: 0 1px 0 rgba(0,0,0,.04), inset 0 0 0 1px rgba(0,0,0,.04);
 }
 
@@ -884,7 +896,7 @@ background-color: var(--brand-weak, #ede8ff);
   display: grid;
   grid-template-columns: repeat(4, 1fr); /* ocupa todo el ancho */
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 30px;
 }
 /* Botones ocupan su celda completa */
 .tower-row .pad-btn{
@@ -892,7 +904,7 @@ background-color: var(--brand-weak, #ede8ff);
   height: 48px;              /* mismo alto que el pad */
   border-radius: 12px;
   border: 0;
-  background: #fff;
+  background: #dfe161;
   box-shadow: 0 1px 2px rgba(0,0,0,.06);
   display: flex; align-items: center; justify-content: center;
   font-size: 18px;
@@ -900,3 +912,86 @@ background-color: var(--brand-weak, #ede8ff);
 }
 .tower-row .pad-btn:active{ transform: scale(.96); opacity:.9; }
 .tower-row .pad-btn:disabled:active{ transform:none; opacity:1; }
+
+.card > .app-header {
+  margin-top: calc(-1 * var(--space-3));
+  margin-left: calc(-1 * var(--space-3));
+  margin-right: calc(-1 * var(--space-3));
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* La card puede “scrollear” y el sticky del header quedará dentro */
+.card { overflow: hidden; }
+.card.scrollable { overflow: auto; }
+
+/* Mobile: eliminar la card contenedora (quedar sólo fondo) */
+@media (max-width: 640px) {
+  .card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+  .card > .app-header {
+    margin-top: calc(-1 * var(--space-3));
+  margin-left: calc(-1 * var(--space-3));
+  margin-right: calc(-1 * var(--space-3));
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  }
+  .screen { padding: 12px; } /* opcional para márgenes internos suaves */
+}
+
+/* Mobile: quitar marco de la “pantalla” */
+@media (max-width: 640px) {
+  .screen {
+    max-width: none;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 12px; /* ya lo tenés; mantenelo cómodo */
+  }
+}
+
+/* Mobile: header fijo, 100% de ancho, sin border-radius */
+@media (max-width: 640px) {
+  .app-header {
+    position: fixed;      /* pegado arriba */
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;         /* ocupa el ancho de la pantalla */
+    margin: 0 !important;
+    border-radius: 0 !important;         /* sin esquinas redondeadas */
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    z-index: 1000;        /* por encima del contenido */
+  }
+
+ 
+}
+
+/* (opcional) Desktop/tablet: header “sticky” dentro del flujo */
+@media (min-width: 641px) {
+  .app-header {
+    position: sticky;
+    top: 0;
+    border-radius: 0; /* si querés sin radios también en desktop */
+  }
+}
+
+
+
+@media (max-width: 640px) {
+  .screen{
+  padding-top: 0px;
+}
+  }
+
+  
