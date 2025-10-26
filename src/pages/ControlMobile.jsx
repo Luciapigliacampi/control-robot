@@ -82,19 +82,28 @@ export default function ControlMobile() {
   };
 
   // ---- Torre / Inclinación ----
-  const startLift = (cmd) => (e) => {
+  // --- Nuevo: Movimiento de la torre (continuo: mantener/soltar) ----
+const startLift = (cmd) => (e) => { // Función para iniciar movimiento (al presionar)
     e.preventDefault();
     if (isAuto) return;
+    
+    // Movimiento de Elevación/Descenso
     if (cmd === "lift_up") return liftUp();
     if (cmd === "lift_down") return liftDown();
-  };
-  const stopLift = (e) => {
+
+    // Movimiento de Inclinación/Declinación
+    if (cmd === "tilt_up") return tiltUp(); 
+    if (cmd === "tilt_down") return tiltDown();
+};
+
+const stopLift = (e) => { // Función para detener movimiento (al soltar)
     e.preventDefault();
-    // no hay lift_stop dedicado en el hook; usamos stop() general
-    stop();
-  };
-  const tiltForward = () => { if (!isAuto) tiltUp(); };
-  const tiltBackward = () => { if (!isAuto) tiltDown(); };
+    // Se utiliza el comando 'stop' general (que llama a stopAll) para detener cualquier movimiento
+    stop(); 
+};
+
+// NOTA: Las funciones tiltForward y tiltBackward ya NO se necesitan, 
+// ya que el JSX las llamará directamente con startLift/stopLift.
 
   // ---- Foto ----
   const onTakePhoto = () => takePhoto();
@@ -245,22 +254,24 @@ export default function ControlMobile() {
         </button>
 
         <button
-          className="pad-btn"
-          onClick={tiltBackward}
-          disabled={isAuto}
-          aria-label="Inclinar abajo-izquierda"
-        >
-          <MoveDownLeft />
-        </button>
+     className="pad-btn"
+     onPointerDown={startLift("tilt_down")} // ✅ Iniciar inclinación al presionar
+     onPointerUp={stopLift}                // ✅ Detener al soltar
+     disabled={isAuto}
+     aria-label="Inclinar abajo-izquierda"
+    >
+     <MoveDownLeft />
+    </button>
 
-        <button
-          className="pad-btn"
-          onClick={tiltForward}
-          disabled={isAuto}
-          aria-label="Inclinar arriba-derecha"
-        >
-          <MoveUpRight />
-        </button>
+    <button
+     className="pad-btn"
+     onPointerDown={startLift("tilt_up")}   // ✅ Iniciar inclinación al presionar
+     onPointerUp={stopLift}                 // ✅ Detener al soltar
+     disabled={isAuto}
+     aria-label="Inclinar arriba-derecha"
+    >
+     <MoveUpRight />
+    </button>
       </section>
 
       {/* [REMOVED] Botón principal (ahora integrado en el botón de pausa) */}

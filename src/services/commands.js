@@ -2,121 +2,121 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const ROBOT_ID = import.meta.env.VITE_ROBOT_ID || "507f1f77bcf86cd799439011";
 
-let cachedMode = null; // "arch" | "task" | "minimal"
-let cachedPath = "/api/robot/command";
+// Ruta única válida en tu backend de Render
+const PATH = "/api/robot/command";
 
-function mapMove(direction) {
-  // mapeo para formato task/value
-  return direction === "forward" ? "move_forward" : "move_backward";
-}
-function mapTurn(direction) {
-  return direction === "left" ? "turn_left" : "turn_right";
-}
-function mapLift(direction) {
-  return direction === "up" ? "lift_up" : "lift_down";
-}
-function mapTilt(direction) {
-  return direction === "up" ? "tilt_up" : "tilt_down";
-}
+// cache del formato que funcionó: 'arch' | 'task'
+let cachedVariant = null;
 
-async function tryPost(body) {
+// Helpers de mapeo para el fallback "task"
+const MAP = {
+  move: (d) => (d === "forward" ? "move_forward" : "move_backward"),
+  turn: (d) => (d === "left" ? "turn_left" : "turn_right"),
+  lift: (d) => (d === "up" ? "lift_up" : "lift_down"),
+  tilt: (d) => (d === "up" ? "tilt_up" : "tilt_down"),
+};
+
+async function post(body) {
   try {
-    const res = await fetch(`${API_BASE}${cachedPath}`, {
+    const res = await fetch(`${API_BASE}${PATH}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (!res.ok) return { ok: false, status: res.status, text: await res.text().catch(() => "") };
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, status: res.status, text };
+    }
     return { ok: true, json: await res.json().catch(() => ({})) };
   } catch (e) {
     return { ok: false, status: 0, text: String(e) };
   }
 }
 
-async function sendCommandVariants(variants) {
-  // si ya aprendimos qué formato acepta, úsalos directo
-  if (cachedMode) {
-    const chosen = variants.find(v => v.mode === cachedMode);
-    if (chosen) return tryPost(chosen.body);
+async function sendWithVariants(buildArch, buildTask) {
+  // si ya sabemos qué formato acepta, usamos ese directo
+  if (cachedVariant) {
+    const body = cachedVariant === "arch" ? buildArch() : buildTask();
+    return post(body);
   }
 
-  for (const v of variants) {
-    const r = await tryPost(v.body);
-    if (r.ok) {
-      cachedMode = v.mode;
-      console.info(`[commands] usando ${cachedMode} → ${cachedPath}`);
-      return r;
-    }
-    // 400/422: rechazado por validación → probamos siguiente
-    // 404: significaría que cambió la ruta; aquí siempre usamos /api/robot/command
+  // 1) intento: arquitectura pactada
+  const a = await post(buildArch());
+  if (a.ok) {
+    cachedVariant = "arch";
+    console.info(`[commands] usando arch → ${PATH}`);
+    return a;
   }
-  // si ninguna variante pasó, devolvemos el último error útil
-  const last = variants[variants.length - 1];
-  return { ok: false, error: `Ningún formato aceptado en ${cachedPath}.` };
+
+  // 2) fallback: formato task/args
+  const b = await post(buildTask());
+  if (b.ok) {
+    cachedVariant = "task";
+    console.info(`[commands] usando task → ${PATH}`);
+    return b;
+  }
+
+  // si nada funcionó, log útil (solo una vez visible aquí)
+  console.warn("[commands] ninguna variante aceptada", { archErr: a, taskErr: b });
+  return b.ok ? b : a;
 }
 
-// ===== acciones de alto nivel =====
-export async function sendMove(direction) {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "move", content: { direction } } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: mapMove(direction), args: {} } },
-    { mode: "minimal", body: { task: mapMove(direction) } },
-  ];
-  return sendCommandVariants(variants);
+/* ==================== Acciones de alto nivel ==================== */
+
+export function sendMove(direction) {
+  return sendWithVariants(
+    // contrato pactado
+    () => ({ robotId: ROBOT_ID, commandType: "move", content: { direction }, source: "web_ui" }),
+    // fallback task/args
+    () => ({ robotId: ROBOT_ID, task: MAP.move(direction), args: {}, source: "web_ui" }),
+  );
 }
-export async function sendTurn(direction) {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "turn", content: { direction } } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: mapTurn(direction), args: {} } },
-    { mode: "minimal", body: { task: mapTurn(direction) } },
-  ];
-  return sendCommandVariants(variants);
+
+export function sendTurn(direction) {
+  return sendWithVariants(
+    () => ({ robotId: ROBOT_ID, commandType: "turn", content: { direction }, source: "web_ui" }),
+    () => ({ robotId: ROBOT_ID, task: MAP.turn(direction), args: {}, source: "web_ui" }),
+  );
 }
-export async function sendLift(direction) {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "lift", content: { direction } } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: mapLift(direction), args: {} } },
-    { mode: "minimal", body: { task: mapLift(direction) } },
-  ];
-  return sendCommandVariants(variants);
+
+export function sendLift(direction) {
+  return sendWithVariants(
+    () => ({ robotId: ROBOT_ID, commandType: "lift", content: { direction }, source: "web_ui" }),
+    () => ({ robotId: ROBOT_ID, task: MAP.lift(direction), args: {}, source: "web_ui" }),
+  );
 }
-export async function sendTilt(direction) {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "tilt", content: { direction } } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: mapTilt(direction), args: {} } },
-    { mode: "minimal", body: { task: mapTilt(direction) } },
-  ];
-  return sendCommandVariants(variants);
+
+export function sendTilt(direction) {
+  return sendWithVariants(
+    () => ({ robotId: ROBOT_ID, commandType: "tilt", content: { direction }, source: "web_ui" }),
+    () => ({ robotId: ROBOT_ID, task: MAP.tilt(direction), args: {}, source: "web_ui" }),
+  );
 }
-export async function setMode(mode) {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "mode", content: { mode } } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: "change_mode", args: { value: mode } } },
-    { mode: "minimal", body: { task: "change_mode" } },
-  ];
-  return sendCommandVariants(variants);
+
+export function setMode(mode) {
+  return sendWithVariants(
+    () => ({ robotId: ROBOT_ID, commandType: "mode", content: { mode }, source: "web_ui" }),
+    () => ({ robotId: ROBOT_ID, task: "change_mode", args: { value: mode }, source: "web_ui" }),
+  );
 }
-export async function startAuto() {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "start" } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: "start_route", args: {} } },
-    { mode: "minimal", body: { task: "start_route" } },
-  ];
-  return sendCommandVariants(variants);
+
+export function startAuto() {
+  return sendWithVariants(
+    () => ({ robotId: ROBOT_ID, commandType: "start", source: "web_ui" }),
+    () => ({ robotId: ROBOT_ID, task: "start_route", args: {}, source: "web_ui" }),
+  );
 }
-export async function stopAll() {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "stop" } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: "stop", args: {} } },
-    { mode: "minimal", body: { task: "stop" } },
-  ];
-  return sendCommandVariants(variants);
+
+export function stopAll() {
+  return sendWithVariants(
+    () => ({ robotId: ROBOT_ID, commandType: "stop", source: "web_ui" }),
+    () => ({ robotId: ROBOT_ID, task: "stop", args: {}, source: "web_ui" }),
+  );
 }
-export async function takePhoto() {
-  const variants = [
-    { mode: "arch", body: { robotId: ROBOT_ID, source: "web_ui", commandType: "take_photo", content: {} } },
-    { mode: "task", body: { robotId: ROBOT_ID, source: "web_ui", task: "capture_image", args: {} } },
-    { mode: "minimal", body: { task: "capture_image" } },
-  ];
-  return sendCommandVariants(variants);
+
+export function takePhoto() {
+  return sendWithVariants(
+    () => ({ robotId: ROBOT_ID, commandType: "take_photo", content: {}, source: "web_ui" }),
+    () => ({ robotId: ROBOT_ID, task: "capture_image", args: {}, source: "web_ui" }),
+  );
 }
