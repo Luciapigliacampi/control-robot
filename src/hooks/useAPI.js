@@ -13,7 +13,10 @@ import {
   takePhoto as apiTakePhoto,
 } from "../services/commands.js";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// ====== Config ======
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const POLL_STATUS_MS = Number(import.meta.env.VITE_POLL_STATUS_MS ?? 3000);  // /api/status
+const POLL_HEALTH_MS = Number(import.meta.env.VITE_POLL_HEALTH_MS ?? 10000); // /health
 
 export default function useApi() {
   const [connected, setConnected] = useState(false);
@@ -22,30 +25,30 @@ export default function useApi() {
   const [snapshot, setSnapshot] = useState(null);
   const [logs, setLogs] = useState([]);
 
-  // --- health ping ---
+  // ====== Health (estable) ======
   const measureHealth = useCallback(async () => {
-    const t0 = Date.now();
+    const t0 = performance.now();
     try {
       const r = await fetch(`${API_BASE}/health`, { cache: "no-store" });
-      setLatencyMs(r.ok ? Date.now() - t0 : null);
-      setConnected(r.ok);
+      setLatencyMs(r.ok ? Math.round(performance.now() - t0) : null);
+      setConnected(!!r.ok);
     } catch {
       setLatencyMs(null);
       setConnected(false);
     }
   }, []);
 
-  // --- estado /status ---
+  // ====== Estado /status (estable) ======
   const pullStatus = useCallback(async () => {
     try {
-      const data = await getStatus();
+      const data = await getStatus(); // mantengo tu service tal cual
       if (data?.robot) setTelemetry(data.robot);
     } catch {
-      // silencioso
+      /* silencioso */
     }
   }, []);
 
-  // --- SSE: new_image → pedir última por HTTP; obstacle → log ---
+  // ====== SSE única + cleanup ======
   useEffect(() => {
     const disconnect = connectSSE({
       onOpen: () => setConnected(true),
@@ -63,7 +66,7 @@ export default function useApi() {
             setLogs((L) => [{ level: "info", msg: "Nueva imagen disponible" }, ...L].slice(0, 50));
           }
         } catch {
-          setLogs((L) => [{ level: "error", msg: "Error al traer la última imagen" }, ...L].slice(0, 50));
+            setLogs((L) => [{ level: "error", msg: "Error al traer la última imagen" }, ...L].slice(0, 50));
         }
       },
 
@@ -72,45 +75,47 @@ export default function useApi() {
       },
     });
 
-    return disconnect;
+    return disconnect; // cleanup de la SSE
   }, []);
 
-  // --- heartbeat ---
-  const intRef = useRef(null);
+  // ====== Polling único + cleanup ======
+  const healthTimer = useRef(null);
+  const statusTimer = useRef(null);
+
   useEffect(() => {
+    // primer “tick” inmediato
     measureHealth();
     pullStatus();
-    intRef.current = setInterval(() => {
-      measureHealth();
-      pullStatus();
-    }, 2000);
-    return () => clearInterval(intRef.current);
+
+    // intervalos estables y separados
+    healthTimer.current = setInterval(measureHealth, POLL_HEALTH_MS);
+    statusTimer.current = setInterval(pullStatus, POLL_STATUS_MS);
+
+    return () => {
+      if (healthTimer.current) clearInterval(healthTimer.current);
+      if (statusTimer.current) clearInterval(statusTimer.current);
+    };
   }, [measureHealth, pullStatus]);
 
   // ===========================================================
-  // ✅ API de comandos (autodetección en services/commands.js)
+  // ✅ API de comandos (con useCallback para referencias estables)
   // ===========================================================
+  const moveForward  = useCallback(() => sendMove("forward"),   []);
+  const moveBackward = useCallback(() => sendMove("backward"),  []);
+  const turnLeft     = useCallback(() => sendTurn("left"),      []);
+  const turnRight    = useCallback(() => sendTurn("right"),     []);
+  const stop         = useCallback(() => apiStopAll(),          []); // alias a stopAll
 
-  // Movimiento (presionado: envía; al soltar, usar stop())
-  const moveForward  = () => sendMove("forward");
-  const moveBackward = () => sendMove("backward");
-  const turnLeft     = () => sendTurn("left");
-  const turnRight    = () => sendTurn("right");
-  const stop         = () => apiStopAll(); // alias a stopAll
+  const liftUp       = useCallback(() => sendLift("up"),        []);
+  const liftDown     = useCallback(() => sendLift("down"),      []);
+  const tiltUp       = useCallback(() => sendTilt("up"),        []);
+  const tiltDown     = useCallback(() => sendTilt("down"),      []);
 
-  // Torre e inclinación
-  const liftUp   = () => sendLift("up");
-  const liftDown = () => sendLift("down");
-  const tiltUp   = () => sendTilt("up");
-  const tiltDown = () => sendTilt("down");
+  const setMode      = useCallback((mode) => apiSetMode(mode),  []); // "auto" | "manual"
+  const startAuto    = useCallback(() => apiStartAuto(),        []);
+  const stopAll      = useCallback(() => apiStopAll(),          []);
 
-  // Modo + auto
-  const setMode   = (mode) => apiSetMode(mode); // "auto" | "manual"
-  const startAuto = () => apiStartAuto();
-  const stopAll   = () => apiStopAll();
-
-  // Foto
-  const takePhoto = () => apiTakePhoto();
+  const takePhoto    = useCallback(() => apiTakePhoto(),        []);
 
   // ===========================================================
 

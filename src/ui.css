@@ -31,7 +31,7 @@
   box-sizing:border-box
 }
 html,body,#root{
-  height:100%
+  height: 100%; overflow: hidden
 }
 body{
   margin:0;
@@ -70,10 +70,10 @@ body{
  }
 
 .snapshot{
-  height: clamp(240px, 35vh, 420px);
-  border-radius:12px;
-  background:#eee;
-  overflow:hidden;
+  height: clamp(180px, 32svh, 360px);
+  border-radius: 12px;
+  background: #eee;
+  overflow: hidden;
 }
 
 .snapshot img{
@@ -114,7 +114,7 @@ body{
   grid-template-rows:auto auto auto;
   justify-items:center;
   gap:10px;
-  margin:10px 0
+  margin: 0
 }
 
 .pad-middle{
@@ -925,7 +925,7 @@ background-color: var(--brand-weak, #ede8ff);
 
 /* La card puede “scrollear” y el sticky del header quedará dentro */
 .card { overflow: hidden; }
-.card.scrollable { overflow: auto; }
+.card.scrollable { overflow: visible; }
 
 /* Mobile: eliminar la card contenedora (quedar sólo fondo) */
 @media (max-width: 640px) {
@@ -994,4 +994,328 @@ background-color: var(--brand-weak, #ede8ff);
 }
   }
 
-  
+  .screen.control-full{
+  height: 100svh;            /* alto real en móviles */
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Zona que se estira y reparte el espacio sin scroll interno */
+.control-body{
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto /* segmentado */
+                       auto /* snapshot caption ocupa su alto */
+                       1fr  /* pad crece si hay espacio */
+                       auto /* torre */
+                       auto;/* status */
+  gap: 12px;
+  overflow: hidden;   /* bloquea scroll accidental */
+}
+
+/* Botón “real” con relieve */
+.pad-btn{
+  width: 64px;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid #2b4b61;
+  background: linear-gradient(180deg, #a6cbe1 0%, #7fb2d1 100%);
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45),   /* brillo arriba */
+    0 6px 0 #2b4b61,                       /* base (relieve) */
+    0 10px 18px rgba(0,0,0,.16);           /* sombra suave */
+  transition: transform .06s ease, box-shadow .06s ease, filter .06s ease;
+}
+
+/* Gloss sutil */
+.pad-btn::after{
+  content:"";
+  position:absolute; inset: 2px 2px auto 2px; height: 40%;
+  border-radius:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+  pointer-events:none;
+}
+
+/* Presionado */
+.pad-btn:active{
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 3px 0 #2b4b61,
+    0 6px 12px rgba(0,0,0,.14);
+  filter: saturate(1.05);
+}
+
+/* Deshabilitado */
+.pad-btn:disabled{
+  opacity:.6;
+  filter: grayscale(.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 6px 0 #3a5b74,
+    0 10px 18px rgba(0,0,0,.10);
+}
+
+/* Variante pausa (naranja) con relieve */
+.pad-btn.pause{
+  border-color: #9a3f18;
+  background: linear-gradient(180deg, #ffa86f 0%, #ec6722 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    0 6px 0 #9a3f18,
+    0 10px 18px rgba(0,0,0,.16);
+}
+.pad-btn.pause:active{
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 3px 0 #9a3f18,
+    0 6px 12px rgba(0,0,0,.14);
+}
+
+/* ===== Reset de alto y scroll ===== */
+html, body, #root { height: 100%; overflow: hidden; }
+
+/* Pantalla del control a alto completo */
+.screen.control-full{
+  height: 100svh;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 12px;                 /* NO padding-top aquí: lo da .has-fixed-header */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: none;              /* sin “marco” */
+  border-radius: 0;
+}
+
+/* Header full-bleed, pegado arriba y sin border-radius */
+.app-header{
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  width: 100vw;
+  border-radius: 0 !important;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  z-index: 1000;
+}
+
+/* Empujar el contenido exactamente debajo del header */
+.has-fixed-header{ padding-top: 64px; } /* 56px header + 8px respiro */
+
+/* Evitar scroll interno accidental */
+.control-full, .control-full * { overscroll-behavior: contain; }
+
+/* Snapshot más alto pero sin romper layout */
+.snapshot{ height: clamp(180px, 32svh, 360px); }
+
+/* --- Botones con relieve (si no lo pegaste antes) --- */
+.pad-btn{
+  width: 64px; height: 48px; border-radius: 12px;
+  border: 1px solid #2b4b61;
+  background: linear-gradient(180deg, #a6cbe1 0%, #7fb2d1 100%);
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45),
+    0 6px 0 #2b4b61,
+    0 10px 18px rgba(0,0,0,.16);
+  transition: transform .06s ease, box-shadow .06s ease, filter .06s ease;
+}
+.pad-btn::after{
+  content:""; position:absolute; inset: 2px 2px auto 2px; height: 40%;
+  border-radius:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+  pointer-events:none;
+}
+.pad-btn:active{
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 3px 0 #2b4b61,
+    0 6px 12px rgba(0,0,0,.14);
+  filter: saturate(1.05);
+}
+.pad-btn.pause{
+  border-color:#9a3f18;
+  background: linear-gradient(180deg, #ffa86f 0%, #ec6722 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    0 6px 0 #9a3f18,
+    0 10px 18px rgba(0,0,0,.16);
+}
+.pad-btn.pause:active{
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 3px 0 #9a3f18,
+    0 6px 12px rgba(0,0,0,.14);
+}
+
+/* Mobile: ocupar ancho completo y sin “gutter” */
+@media (max-width: 640px){
+  .screen{ max-width:none; margin:0; border-radius:0; }
+}
+
+/* =======================
+   Botón 3D unificado (pad, pausa, torre, cámara)
+   ======================= */
+
+.pad-btn{
+  --btn-top:    #bfe0f2;  /* color arriba */
+  --btn-bottom: #8dc1dc;  /* color abajo */
+  --btn-border: #2b4b61;  /* borde + sombra base */
+  --btn-shadow: #2b4b61;
+
+  width: 64px; height: 48px; border-radius: 12px;
+  border: 1px solid var(--btn-border);
+  background: linear-gradient(180deg, var(--btn-top) 0%, var(--btn-bottom) 100%);
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45), /* brillo arriba */
+    0 6px 0 var(--btn-shadow),           /* base de relieve */
+    0 10px 18px rgba(0,0,0,.16);         /* sombra suave */
+  transition: transform .06s ease, box-shadow .06s ease, filter .06s ease, opacity .06s ease;
+}
+
+/* gloss */
+.pad-btn::after{
+  content:"";
+  position:absolute; inset: 2px 2px auto 2px; height: 40%;
+  border-radius:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+  pointer-events:none;
+}
+
+/* estado presionado (todas iguales) */
+.pad-btn:active{
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 3px 0 var(--btn-shadow),
+    0 6px 12px rgba(0,0,0,.14);
+  filter: saturate(1.05);
+}
+
+/* disabled coherente */
+.pad-btn:disabled{
+  opacity:.6;
+  filter: grayscale(.15);
+  cursor: not-allowed;
+}
+
+/* Pausa (naranja) – mismo relieve, otros colores */
+.pad-btn.pause{
+  --btn-top:    #ffa86f;
+  --btn-bottom: #ec6722;
+  --btn-border: #9a3f18;
+  --btn-shadow: #9a3f18;
+}
+
+/* Cámara (mismo set que pad azul por consistencia) */
+.pad-btn.camera{
+  --btn-top:    #d3e9f7;
+  --btn-bottom: #a7cfe6;
+  --btn-border: #2b4b61;
+  --btn-shadow: #2b4b61;
+}
+
+/* Torre amarilla – mantiene MISMO relieve/activos */
+.tower-row .pad-btn{
+  --btn-top:    #f4f29c;
+  --btn-bottom: #dfe161;
+  --btn-border: #8a8a2a;
+  --btn-shadow: #8a8a2a;
+  width: 100%; height: 48px; /* ocupa la celda completa */
+}
+
+/* Pista (track) con volumen */
+.segmented{
+  display: inline-flex; align-items: center;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #99c3df 0%, #89bad7 100%);
+  border: 1px solid rgba(31,41,55,.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45),
+    0 3px 10px rgba(0,0,0,.08);
+}
+
+/* Botón dentro del switch */
+.seg{
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #0b1324;
+  position: relative;
+  transition: transform .06s ease, box-shadow .06s ease, background .12s ease, color .12s ease;
+}
+
+.seg.active{
+  background: linear-gradient(180deg, #1b223a 0%, #0f172a 100%);
+  color: #f0f3f6;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 4px 0 rgba(0,0,0,.35),
+    0 10px 18px rgba(0,0,0,.18);
+}
+
+/* efecto click consistente */
+.seg:active{
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 2px 0 rgba(0,0,0,.35),
+    0 6px 12px rgba(0,0,0,.12);
+}
+
+/* Usa variables del header para unificar */
+:root{
+  /* ya las tenés definidas, solo nos aseguramos de usarlas */
+  /* --header-bg, --header-border, --header-ink */
+}
+
+/* Panel lateral / dropdown */
+.side-menu,
+.profile-card,
+.hc-menu,
+.hc-menu.side{
+  background: var(--header-bg) !important;
+  border: 1px solid var(--header-border) !important;
+  color: var(--header-ink) !important;
+  box-shadow: 0 10px 32px rgba(0,0,0,.45);
+}
+
+/* Ítems / links del menú */
+.side-menu-content a,
+.profile-btn,
+.hc-menu-item{
+  color: var(--header-ink) !important;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+}
+.side-menu-content a:hover,
+.profile-btn:hover,
+.hc-menu-item:hover{
+  background: rgba(255,255,255,0.12);
+}
+
+/* Subtextos / emails en dropdown */
+.profile-email { color: rgba(255,255,255,.75) !important; }
+
+/* Overlay oscuro igual al header mood */
+.menu-overlay,
+.hc-overlay{
+  background: rgba(12,14,18,.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
