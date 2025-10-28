@@ -68,7 +68,7 @@ export default function Header({ title = "LiftCore", onLogout }) {
               <span className="hc-profile-email">{user?.email}</span>
             </div>
 
-            <Link
+            {/* <Link
               to="/"
               className="hc-menu-item"
               onClick={() => setIsMenuOpen(false)}
@@ -76,7 +76,7 @@ export default function Header({ title = "LiftCore", onLogout }) {
             >
               <Home className="w-4 h-4" />
               Inicio
-            </Link>
+            </Link> */}
 
             <button
               className="hc-menu-item danger"
