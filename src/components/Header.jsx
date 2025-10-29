@@ -1,6 +1,6 @@
 // src/components/Header.jsx
 import { useEffect, useState } from 'react';
-import { LogOut, Home, User } from 'lucide-react';
+import { LogOut, Home, User, LayoutDashboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 
@@ -8,6 +8,14 @@ export default function Header({ title = "LiftCore", onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const { user } = useAuth0();
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // se asigna el rol tradio desde local store a una variable 
+    useEffect(() => {
+    const storedRole = localStorage.getItem("userRole");
+    if (storedRole === "admin") setIsAdmin(true);
+  }, []);
+  
 
   // Evita múltiples requests a lh3.googleusercontent.com
   useEffect(() => {
@@ -22,8 +30,33 @@ export default function Header({ title = "LiftCore", onLogout }) {
   const handleLogoutClick = () => {
     setIsMenuOpen(false);
     if (onLogout) onLogout();
+    //limpio local storage
+    localStorage.removeItem("dashboardToken");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("auth0Id");
+    localStorage.removeItem("email");
   };
-
+const goToDashboard = async () => {
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/generate-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+       body: JSON.stringify({ auth0Id: user.sub }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      // Guardamos token en localStorage antes de ir
+      localStorage.setItem("dashboardToken", data.token);
+      window.location.href = `http://localhost:5174?token=${data.token}`;
+    } else {
+      console.error("No se pudo generar token:", data.message);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
   return (
     <header className="hc-header">
       {/* Izquierda: hamburguesa */}
@@ -77,7 +110,17 @@ export default function Header({ title = "LiftCore", onLogout }) {
               <Home className="w-4 h-4" />
               Inicio
             </Link> */}
-
+            {/* 🔹 Solo visible para admin */}
+            {isAdmin && (
+              <button
+                className="hc-menu-item"
+                onClick={goToDashboard}
+                role="menuitem"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Ir al Dashboard
+              </button>
+            )}
             <button
               className="hc-menu-item danger"
               onClick={handleLogoutClick}
