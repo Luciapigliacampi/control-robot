@@ -1,51 +1,103 @@
-// src/components/RequireAuth.jsx
-import React from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { Navigate } from 'react-router-dom';
-// Asegúrate de tener un componente Spinner si lo usas
-// import Spinner from './Spinner.jsx'; 
-import ErrorPage from '../pages/ErrorPage.jsx'; // Para manejar 'access_denied'
+import React, { useEffect, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 
-/**
- * Componente de orden superior que requiere autenticación.
- * Muestra el contenido hijo solo si el usuario está autenticado.
- */
 export default function RequireAuth({ children }) {
-  const { 
-    isAuthenticated, 
-    isLoading, 
-    error, 
-    loginWithRedirect 
-  } = useAuth0();
+  const { isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0();
+  const [accessGranted, setAccessGranted] = useState(false);
+  const [checking, setChecking] = useState(true);
 
-  // 1. Manejo del Estado de Carga (Spinner)
-  if (isLoading) {
-    // Si está cargando, muestra un mensaje o spinner
-    return <div style={{ 
-      display: 'grid', 
-      placeItems: 'center', 
-      height: '100vh', 
-      fontSize: '20px'
-    }}>Cargando autenticación...</div>;
-    // return <Spinner />;
+  useEffect(() => {
+    const verifyAccess = async () => {
+      if (!isAuthenticated || !user) {
+        setChecking(false);
+        return;
+      }
+
+      try {
+        // 1️⃣ Verificar si el usuario existe
+        let res = await fetch("http://localhost:3000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            auth0Id: user.sub,
+            email: user.email,
+            name: user.name,
+          }),
+        });
+
+        // 2️⃣ Si no existe, crearlo automáticamente
+        if (res.status === 404) {
+          await fetch("http://localhost:3000/api/auth/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              auth0Id: user.sub,
+              email: user.email,
+              name: user.name,
+            }),
+          });
+        }
+
+        // 3️⃣ Verificar acceso como operador
+        const operatorCheck = await fetch("http://localhost:3000/api/auth/access-operator", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ auth0Id: user.sub }),
+        });
+
+        // 4️⃣ Verificar acceso como admin
+        const adminCheck = await fetch("http://localhost:3000/api/auth/access-admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ auth0Id: user.sub }),
+        });
+
+        const opRes = await operatorCheck.json();
+        const admRes = await adminCheck.json();
+
+        // 5️⃣ Si alguna ruta lo acepta, concedemos acceso
+        if (operatorCheck.status === 200 && opRes.user) {
+          localStorage.setItem("userRole", opRes.user.role);
+          localStorage.setItem("userData", JSON.stringify(opRes.user));
+          setAccessGranted(true);
+        } else if (adminCheck.status === 200 && admRes.user) {
+          localStorage.setItem("userRole", admRes.user.role);
+          localStorage.setItem("userData", JSON.stringify(admRes.user));
+          setAccessGranted(true);
+        } else {
+          setAccessGranted(false);
+        }
+      } catch (err) {
+        console.error("Error verificando acceso:", err);
+        setAccessGranted(false);
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    verifyAccess();
+  }, [isAuthenticated, user]);
+
+  if (isLoading || checking) {
+    return (
+      <div style={{ display: "grid", placeItems: "center", height: "100vh", fontSize: "20px" }}>
+        Cargando autenticación...
+      </div>
+    );
   }
 
-  // 2. Manejo de Errores (Access Denied)
-  if (error && error.error === 'access_denied') {
-    // Si Auth0 devuelve 'access_denied' (como se especifica en la doc ),
-    // redirige a la página de error.
-    return <ErrorPage error={error} />; 
-  }
-  
-  // 3. Manejo de Falta de Autenticación
   if (!isAuthenticated) {
-    // Si el usuario no está logueado, inicia el flujo de redirección
-    // al proveedor de identidad (Auth0).
     loginWithRedirect();
-    // Mientras la redirección ocurre, no renderizamos nada
-    return null; 
+    return null;
   }
 
-  // 4. Autenticación Exitosa: Renderiza el contenido hijo (ControlMobile)
+  if (!accessGranted) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px", fontSize: "20px" }}>
+        Acceso denegado: no tienes permisos para ingresar.
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }

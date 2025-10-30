@@ -2,6 +2,44 @@
 // Base única para la API (Render en producción o localhost en dev)
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+
+/**
+ * POST /api/auth/signup
+ * Crea un nuevo usuario (por defecto con rol "operator")
+ */
+export async function signupUser({ auth0Id, name, email }) {
+  const res = await fetch(`${API_BASE}/api/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ auth0Id, name, email }),
+  });
+
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(`signup_failed: ${msg}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * POST /api/auth/login
+ * Verifica si el usuario existe en la base de datos
+ */
+export async function loginUser({ email }) {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(`login_failed: ${msg}`);
+  }
+
+  return res.json();
+}
 /**
  * GET /api/status
  * Respuesta esperada: { robot, logs? }

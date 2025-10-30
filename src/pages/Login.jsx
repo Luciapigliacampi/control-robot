@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { LogOut, User, Shield } from "lucide-react";
 import ErrorPage from "./ErrorPage";
+import { loginUser, signupUser } from "../services/api";
+
 
 function getQueryParam(param) {
     const params = new URLSearchParams(window.location.search);
@@ -11,6 +13,25 @@ function getQueryParam(param) {
 export default function App() {
     const { loginWithRedirect, logout, user, isAuthenticated, isLoading } = useAuth0();
     const error = getQueryParam("error");
+    useEffect(() => {
+  const syncUserWithDB = async () => {
+    if (!user || !isAuthenticated) return;
+
+    try {
+      const res = await loginUser({ email: user.email });
+      console.log("✅ Usuario encontrado en DB:", res.user);
+      // Aquí permites acceso
+    } catch (err) {
+      console.warn("⚠️ Usuario no registrado en DB:", err.message);
+      // Bloquear acceso: redirigir o mostrar error
+      window.location.href = "/not-registered";
+    }
+  };
+
+  syncUserWithDB();
+}, [user, isAuthenticated]);
+
+
 
     if (isLoading) {
         return (
