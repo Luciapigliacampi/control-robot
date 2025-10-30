@@ -4,6 +4,8 @@ import { LogOut, Home, User, LayoutDashboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export default function Header({ title = 'LiftCore', onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(null);
@@ -40,7 +42,7 @@ export default function Header({ title = 'LiftCore', onLogout }) {
   };
   const goToDashboard = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/auth/generate-token', {
+      const res = await fetch(`${API_BASE}/api/auth/generate-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
