@@ -27,6 +27,37 @@
  --card-shadow: 0 8px 24px rgba(17, 24, 39, .08);
 }
 
+/* === Bloque anti-selección y anti-callout para controles táctiles === */
+button,
+button *,
+[role="button"],
+[role="button"] *,
+.btn,
+.action,
+.control-key,
+.control-key *,
+.icon-button,
+.icon-button * {
+  user-select: none;
+  -webkit-user-select: none;       /* iOS/Safari */
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;     /* evita el menú de copiar/definir en iOS */
+  -webkit-tap-highlight-color: transparent; /* quita el destello gris */
+  touch-action: manipulation;      /* evita gestos/zoom no deseados */
+  -webkit-user-drag: none;         /* evita arrastre de íconos/imágenes */
+}
+
+/* Clase utilitaria por si tenés “divs” que actúan como botones */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+
 *{
   box-sizing:border-box
 }
@@ -899,18 +930,7 @@ background-color: var(--brand-weak, #ede8ff);
   margin-top: 30px;
 }
 /* Botones ocupan su celda completa */
-.tower-row .pad-btn{
-  width: 100%;
-  height: 48px;              /* mismo alto que el pad */
-  border-radius: 12px;
-  border: 0;
-  background: #dfe161;
-  box-shadow: 0 1px 2px rgba(0,0,0,.06);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  transition: transform .1s ease-out, opacity .1s ease-out;
-}
-.tower-row .pad-btn:active{ transform: scale(.96); opacity:.9; }
+
 .tower-row .pad-btn:disabled:active{ transform:none; opacity:1; }
 
 .card > .app-header {
@@ -1041,12 +1061,11 @@ background-color: var(--brand-weak, #ede8ff);
   pointer-events:none;
 }
 
-/* Presionado */
-.pad-btn:active{
-  transform: translateY(3px);
+.pad-btn.is-pressing{
+  transform: translateY(3px); /* CLAVE: El botón baja 3px */
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.25),
-    0 3px 0 #2b4b61,
+    0 3px 0 var(--btn-shadow), /* La base de 6px se achica a 3px */
     0 6px 12px rgba(0,0,0,.14);
   filter: saturate(1.05);
 }
@@ -1133,14 +1152,6 @@ html, body, #root { height: 100%; overflow: hidden; }
   background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
   pointer-events:none;
 }
-.pad-btn:active{
-  transform: translateY(3px);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.25),
-    0 3px 0 #2b4b61,
-    0 6px 12px rgba(0,0,0,.14);
-  filter: saturate(1.05);
-}
 .pad-btn.pause{
   border-color:#9a3f18;
   background: linear-gradient(180deg, #ffa86f 0%, #ec6722 100%);
@@ -1190,16 +1201,6 @@ html, body, #root { height: 100%; overflow: hidden; }
   border-radius:10px;
   background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
   pointer-events:none;
-}
-
-/* estado presionado (todas iguales) */
-.pad-btn:active{
-  transform: translateY(3px);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.25),
-    0 3px 0 var(--btn-shadow),
-    0 6px 12px rgba(0,0,0,.14);
-  filter: saturate(1.05);
 }
 
 /* disabled coherente */
@@ -1319,3 +1320,20 @@ html, body, #root { height: 100%; overflow: hidden; }
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 }
+
+.pad-btn.is-pressing {
+  transform: translateY(3px);
+  /* la base se acerca al fondo y se oscurece un poco */
+  box-shadow:
+    inset 0 2px 2px rgba(0,0,0,.25),      /* leve sombreado interior */
+    0 2px 0 var(--btn-shadow),            /* base más corta */
+    0 4px 8px rgba(0,0,0,.15);            /* sombra suave exterior */
+  filter: brightness(0.95);
+}
+
+
+
+
+
+
+

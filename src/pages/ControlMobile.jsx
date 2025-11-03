@@ -60,9 +60,28 @@ export default function ControlMobile() {
   };
   const stopLift = (e) => { e.preventDefault(); stop(); };
 
+    // === FIX B helpers: clase is-pressing + handlers de mantener ===
+  const makePressHandlers = (startFn, endFn) => ({
+    onPointerDown:  (e) => { e.preventDefault(); e.currentTarget.classList.add("is-pressing"); startFn(e); },
+    onPointerUp:    (e) => { e.preventDefault(); e.currentTarget.classList.remove("is-pressing"); endFn(e); },
+    onPointerLeave: (e) => { e.preventDefault(); e.currentTarget.classList.remove("is-pressing"); endFn(e); },
+    onPointerCancel:(e) => { e.preventDefault(); e.currentTarget.classList.remove("is-pressing"); endFn(e); },
+  });
+
   // ---- Foto ----
-  const onTakePhoto = () => takePhoto();
+  // const onTakePhoto = () => takePhoto();
   const handleLogout = () => logout({ logoutParams: { returnTo: window.location.origin } });
+
+  const makeClickPressHandlers = (clickFn) => ({
+  onPointerDown: (e) => { e.preventDefault(); e.currentTarget.classList.add("is-pressing"); },
+  onPointerUp: (e) => { 
+    e.preventDefault(); 
+    e.currentTarget.classList.remove("is-pressing"); 
+    clickFn(); // Llama a la acción de click solo al soltar
+  },
+  onPointerLeave: (e) => { e.preventDefault(); e.currentTarget.classList.remove("is-pressing"); },
+  onPointerCancel: (e) => { e.preventDefault(); e.currentTarget.classList.remove("is-pressing"); },
+});
 
   const imageDesc = snapshot?.description || telemetry?.currentTask || "—";
 
@@ -72,7 +91,10 @@ export default function ControlMobile() {
       <Header title="LiftCore" onLogout={handleLogout} />
 
       {/* Contenido */}
-      <div className="screen control-full has-fixed-header">
+      <div
+  className="screen control-full has-fixed-header no-select"
+  onContextMenu={(e) => e.preventDefault()}
+>
         {/* Selector Automático / Manual */}
         <div className="row spaced">
           <div className="segmented-wrap">
@@ -112,9 +134,7 @@ export default function ControlMobile() {
           <div className="pad-top-row">
             <button
               className="pad-btn up"
-              onPointerDown={startMove("move_forward")}
-              onPointerUp={stopMove}
-              onPointerCancel={stopMove}
+              {...makePressHandlers(startMove("move_forward"), stopMove)}
               onContextMenu={(e)=>e.preventDefault()}
               disabled={isAuto}
               aria-label="Mover hacia adelante"
@@ -122,22 +142,21 @@ export default function ControlMobile() {
               ▲
             </button>
 
-            <button
-              className="pad-btn camera"
-              onClick={onTakePhoto}
-              title="Tomar foto"
-              aria-label="Tomar foto"
-            >
-              <Camera />
-            </button>
+            {/* Botón de la Cámara */}
+<button
+  className="pad-btn camera"
+  {...makeClickPressHandlers(takePhoto)}
+  title="Tomar foto"
+  aria-label="Tomar foto"
+>
+  <Camera />
+</button>
           </div>
 
           <div className="pad-middle">
             <button
               className="pad-btn left"
-              onPointerDown={startMove("turn_left")}
-              onPointerUp={stopMove}
-              onPointerCancel={stopMove}
+              {...makePressHandlers(startMove("turn_left"), stopMove)}
               onContextMenu={(e)=>e.preventDefault()}
               disabled={isAuto}
               aria-label="Girar a la izquierda"
@@ -161,9 +180,7 @@ export default function ControlMobile() {
 
             <button
               className="pad-btn right"
-              onPointerDown={startMove("turn_right")}
-              onPointerUp={stopMove}
-              onPointerCancel={stopMove}
+              {...makePressHandlers(startMove("turn_right"), stopMove)}
               onContextMenu={(e)=>e.preventDefault()}
               disabled={isAuto}
               aria-label="Girar a la derecha"
@@ -174,9 +191,7 @@ export default function ControlMobile() {
 
           <button
             className="pad-btn down"
-            onPointerDown={startMove("move_backward")}
-            onPointerUp={stopMove}
-            onPointerCancel={stopMove}
+            {...makePressHandlers(startMove("move_backward"), stopMove)}
             onContextMenu={(e)=>e.preventDefault()}
             disabled={isAuto}
             aria-label="Mover hacia atrás"
@@ -189,36 +204,28 @@ export default function ControlMobile() {
         <section className="tower-row">
           <button
             className="pad-btn"
-            onPointerDown={startLift("lift_down")}
-            onPointerUp={stopLift}
-            onPointerCancel={stopLift}
+            {...makePressHandlers(startLift("lift_down"), stopLift)}
             disabled={isAuto}
             aria-label="Bajar torre"
           ><MoveDown /></button>
 
           <button
             className="pad-btn"
-            onPointerDown={startLift("lift_up")}
-            onPointerUp={stopLift}
-            onPointerCancel={stopLift}
+            {...makePressHandlers(startLift("lift_up"), stopLift)}
             disabled={isAuto}
             aria-label="Subir torre"
           ><MoveUp /></button>
 
           <button
             className="pad-btn"
-            onPointerDown={startLift("tilt_down")}
-            onPointerUp={stopLift}
-            onPointerCancel={stopLift}
+            {...makePressHandlers(startLift("tilt_down"), stopLift)}
             disabled={isAuto}
             aria-label="Inclinar abajo-izquierda"
           ><MoveDownLeft /></button>
 
           <button
             className="pad-btn"
-            onPointerDown={startLift("tilt_up")}
-            onPointerUp={stopLift}
-            onPointerCancel={stopLift}
+            {...makePressHandlers(startLift("tilt_up"), stopLift)}
             disabled={isAuto}
             aria-label="Inclinar arriba-derecha"
           ><MoveUpRight /></button>
