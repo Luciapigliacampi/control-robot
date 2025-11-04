@@ -51,7 +51,7 @@ export default function useApi() {
   useEffect(() => {
     const updateSnapshot = async () => {
       const last = await getLastImage()
-      setSnapshot({ snapshotUrl: last.url, ts: last.timestamp || Date.now() })
+      setSnapshot({ snapshotUrl: last.url, description: last.description, ts: last.timestamp || Date.now() })
     }
     updateSnapshot()
   }, [])
@@ -70,7 +70,7 @@ export default function useApi() {
         try {
           const last = await getLastImage();
           if (last?.url) {
-            setSnapshot({ snapshotUrl: last.url, ts: last.timestamp || Date.now() });
+            setSnapshot({ snapshotUrl: last.url, description: last.description, ts: last.timestamp || Date.now() });
             setLogs((L) => [{ level: "info", msg: "Nueva imagen disponible" }, ...L].slice(0, 50));
           }
         } catch {

@@ -122,8 +122,9 @@ body{
 
 .caption{
   margin-top:8px;
-  color:var(--muted);
-  font-size:14px
+  color: #dfe161;
+  font-size:16px;
+  margin-bottom: 8px;
 }
 
 /* .card.mini{
