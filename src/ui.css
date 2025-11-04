@@ -137,7 +137,7 @@ body{
 
 /* .metric{font-size:24px;font-weight:700} */
 
-.muted{color:var(--muted)}
+.muted{color:var(--muted-ink)}
 
 .small{font-size:12px}
 
