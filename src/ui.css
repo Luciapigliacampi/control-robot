@@ -3,7 +3,7 @@
  --bg: #30509e;         /* Fondo: Azul Claro */
  --ink: #13192e;        /* Tinta/Texto/Elementos Oscuros: Azul Muy Oscuro */
  --brand: #30509e;      /* Marca/Énfasis: Azul Oscuro */
- 
+
   /* COLORES SECUNDARIOS (Ajustados para el nuevo esquema) */
  --card: #89bad7;
  --muted: #4e6293;      /* Texto suave, basado en el nuevo esquema */
@@ -16,8 +16,8 @@
  --header-ink: #f0f3f6;    /* Tinta de header (blanco/claro) */
  --menu-bg: #1b223a;       /* Fondo de menú dropdown */
  --menu-border: #2c354e;   /* Borde de menú dropdown */
---radius-xl: 16px; 
- --radius-lg: 12px; 
+--radius-xl: 16px;
+ --radius-lg: 12px;
  --space-1: 8px;
  --space-2: 12px;
  --space-3: 16px;
@@ -105,6 +105,7 @@ body{
   border-radius: 12px;
   background: #eee;
   overflow: hidden;
+  border: 2px solid #dfe161;
 }
 
 .snapshot img{
@@ -242,7 +243,7 @@ html, body { overflow-x: hidden; }
   grid-template-columns: 40px 1fr 40px;
   align-items:center;
   height:56px;
-  background: var(--header-bg); 
+  background: var(--header-bg);
   border: 1px solid var(--header-border);
   padding: 6px 8px;
   margin-bottom: 10px;
@@ -341,8 +342,8 @@ background-color: var(--brand-weak, #ede8ff);
 }
 
 /* Efecto de clic: Achicar ligeramente el elemento cuando se presiona */
-.btn:active, 
-.icon-btn:active, 
+.btn:active,
+.icon-btn:active,
 .seg:active,
 .pad-btn:active {
     transform: scale(0.95); /* Reduce el tamaño al 95% */
@@ -350,12 +351,12 @@ background-color: var(--brand-weak, #ede8ff);
 }
 
 /* Asegurar que los botones deshabilitados no tengan animación */
-.btn:disabled:active, 
-.icon-btn:disabled:active, 
+.btn:disabled:active,
+.icon-btn:disabled:active,
 .seg:disabled:active,
 .pad-btn:disabled:active {
     transform: scale(1); /* Deshabilita el achicamiento */
-    opacity: 1; 
+    opacity: 1;
     cursor: not-allowed;
 }
 
@@ -461,8 +462,8 @@ background-color: var(--brand-weak, #ede8ff);
 }
 
 /* Asegurate que el contenedor sea posicionable */
-.screen { 
-  position: relative; 
+.screen {
+  position: relative;
   /* padding-bottom: max(96px, env(safe-area-inset-bottom));  */
 }
 
@@ -695,9 +696,9 @@ background-color: var(--brand-weak, #ede8ff);
  grid-template-columns: 48px 1fr 48px;
  align-items:center;
  height:56px;
- background: var(--header-bg); 
+ background: var(--header-bg);
  border: 1px solid var(--header-border);
- padding: 0 4px; 
+ padding: 0 4px;
  margin-bottom: 10px;
  position: relative;
 }
@@ -706,7 +707,7 @@ background-color: var(--brand-weak, #ede8ff);
  text-align: center;
  font-size: 18px;
  font-weight: 700;
- color: var(--header-ink); 
+ color: var(--header-ink);
  line-height: 1;
 }
 
@@ -721,8 +722,8 @@ background-color: var(--brand-weak, #ede8ff);
 
 /* Contenedor del avatar (a la derecha) */
 .hc-avatar-container {
-    display: grid; 
-    place-items: center; 
+    display: grid;
+    place-items: center;
     width: 100%; /* Ocupa la columna de 48px */
 }
 
@@ -765,21 +766,21 @@ background-color: var(--brand-weak, #ede8ff);
 
 .hc-menu.side {
     position: absolute;
-    top: 56px; 
+    top: 56px;
     left: 8px; /* CLAVE: Alineación a la izquierda */
     right: auto; /* Desactivar la alineación a la derecha */
     z-index: 100;
     width: 220px;
-    
+
     /* Fondo que no es transparente */
-    background-color: var(--menu-bg); 
+    background-color: var(--menu-bg);
     border: 1px solid var(--menu-border);
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     padding: 8px;
     display: flex;
     flex-direction: column;
-    
+
     /* Animación simple */
     transform-origin: top left;
     transform: scale(1);
@@ -820,7 +821,7 @@ background-color: var(--brand-weak, #ede8ff);
 }
 
 .hc-menu-item:hover {
-    background-color: rgba(255, 255, 255, 0.08); 
+    background-color: rgba(255, 255, 255, 0.08);
 }
 
 .hc-menu-item.danger {
@@ -843,8 +844,8 @@ background-color: var(--brand-weak, #ede8ff);
 }
 
 /* :root{
-  --radius-xl: 16px;     
-  --radius-lg: 12px;     
+  --radius-xl: 16px;
+  --radius-lg: 12px;
   --space-1: 8px;
   --space-2: 12px;
   --space-3: 16px;
@@ -994,7 +995,7 @@ background-color: var(--brand-weak, #ede8ff);
     z-index: 1000;        /* por encima del contenido */
   }
 
- 
+
 }
 
 /* (opcional) Desktop/tablet: header “sticky” dentro del flujo */

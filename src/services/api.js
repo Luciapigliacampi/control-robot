@@ -66,7 +66,7 @@ export async function getImages() {
  */
 export async function getLastImage() {
   const data = await getImages();
-  const list = Array.isArray(data?.images) ? data.images : [];
+  const list = Array.isArray(data) ? data : [];
   const last = list.length ? list[list.length - 1] : null;
   if (!last) return null;
   return {

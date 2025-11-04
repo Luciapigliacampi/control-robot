@@ -28,14 +28,14 @@ export function connectSSE(on = {}) {
 
   // 🔌 Conectado correctamente
   if (on.onOpen)
-    src.addEventListener("open", () => {
+    src.addEventListener("robot_connected", () => {
       console.log("[SSE] Conectado al servidor");
       on.onOpen();
     });
 
   // ❌ Error en la conexión
   if (on.onError)
-    src.addEventListener("error", (e) => {
+    src.addEventListener("robot_error", (e) => {
       console.error("[SSE] Error o desconexión:", e);
       on.onError(e);
     });
