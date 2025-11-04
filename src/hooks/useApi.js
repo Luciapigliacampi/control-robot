@@ -48,6 +48,14 @@ export default function useApi() {
     }
   }, []);
 
+  useEffect(() => {
+    const updateSnapshot = async () => {
+      const last = await getLastImage()
+      setSnapshot({ snapshotUrl: last.url, ts: last.timestamp || Date.now() })
+    }
+    updateSnapshot()
+  }, [])
+
   // ====== SSE única + cleanup ======
   useEffect(() => {
     const disconnect = connectSSE({

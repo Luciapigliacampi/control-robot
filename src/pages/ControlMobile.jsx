@@ -1,6 +1,6 @@
 // src/pages/ControlMobile.jsx
 import { useEffect, useState } from "react";
-import useApi from "../hooks/useAPI.js";
+import useApi from "../hooks/useApi.js";
 import Header from "../components/Header.jsx";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Play, Square, Camera, MoveUp, MoveDown, MoveUpRight, MoveDownLeft } from "lucide-react";
@@ -13,6 +13,7 @@ export default function ControlMobile() {
     setMode, startAuto, stopAll, takePhoto,
   } = useApi();
   const { logout } = useAuth0();
+
 
   const [mode, setLocalMode] = useState("manual");
   useEffect(() => { if (telemetry?.mode) setLocalMode(telemetry.mode); }, [telemetry?.mode]);
@@ -74,9 +75,9 @@ export default function ControlMobile() {
 
   const makeClickPressHandlers = (clickFn) => ({
   onPointerDown: (e) => { e.preventDefault(); e.currentTarget.classList.add("is-pressing"); },
-  onPointerUp: (e) => { 
-    e.preventDefault(); 
-    e.currentTarget.classList.remove("is-pressing"); 
+  onPointerUp: (e) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove("is-pressing");
     clickFn(); // Llama a la acción de click solo al soltar
   },
   onPointerLeave: (e) => { e.preventDefault(); e.currentTarget.classList.remove("is-pressing"); },
