@@ -1333,9 +1333,13 @@ html, body, #root { height: 100%; overflow: hidden; }
   filter: brightness(0.95);
 }
 
+.pad-top-row .pad-btn.mic {
+  right: 0;
+}
 
-
-
-
-
-
+.pad-btn.mic {
+  --btn-top:    #d3e9f7;
+  --btn-bottom: #a7cfe6;
+  --btn-border: #2b4b61;
+  --btn-shadow: #2b4b61;
+}

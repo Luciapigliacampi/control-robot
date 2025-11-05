@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import useApi from "../hooks/useApi.js";
 import Header from "../components/Header.jsx";
+import VoiceRecorder from "../components/VoiceRecorder.jsx";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Play, Square, Camera, MoveUp, MoveDown, MoveUpRight, MoveDownLeft } from "lucide-react";
 
@@ -144,14 +145,17 @@ export default function ControlMobile() {
             </button>
 
             {/* Botón de la Cámara */}
-<button
-  className="pad-btn camera"
-  {...makeClickPressHandlers(takePhoto)}
-  title="Tomar foto"
-  aria-label="Tomar foto"
->
-  <Camera />
-</button>
+            <button
+              className="pad-btn camera"
+              {...makeClickPressHandlers(takePhoto)}
+              title="Tomar foto"
+              aria-label="Tomar foto"
+            >
+              <Camera />
+            </button>
+
+            {/* Micrófono (derecha) */}
+            <VoiceRecorder />
           </div>
 
           <div className="pad-middle">
