@@ -11,23 +11,21 @@ export default function RequireAuth({ children }) {
   useEffect(() => {
     const verifyAccess = async () => {
       if (!isAuthenticated || !user) {
-        setChecking(false);
+        setChecking(false); // 👈 aseguramos que no quede en loop
         return;
       }
 
       try {
-        // 1️⃣ Verificar si el usuario existe
         let res = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             auth0Id: user.sub,
             email: user.email,
-            name: user.name
-          })
+            name: user.name,
+          }),
         });
 
-        // 2️⃣ Si no existe, crearlo automáticamente
         if (res.status === 404) {
           await fetch(`${API_BASE}/api/auth/signup`, {
             method: 'POST',
@@ -35,32 +33,26 @@ export default function RequireAuth({ children }) {
             body: JSON.stringify({
               auth0Id: user.sub,
               email: user.email,
-              name: user.name
-            })
+              name: user.name,
+            }),
           });
         }
 
-        // 3️⃣ Verificar acceso como operador
-        const operatorCheck = await fetch(
-          `${API_BASE}/api/auth/access-operator`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ auth0Id: user.sub })
-          }
-        );
+        const operatorCheck = await fetch(`${API_BASE}/api/auth/access-operator`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auth0Id: user.sub }),
+        });
 
-        // 4️⃣ Verificar acceso como admin
         const adminCheck = await fetch(`${API_BASE}/api/auth/access-admin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ auth0Id: user.sub })
+          body: JSON.stringify({ auth0Id: user.sub }),
         });
 
         const opRes = await operatorCheck.json();
         const admRes = await adminCheck.json();
 
-        // 5️⃣ Si alguna ruta lo acepta, concedemos acceso
         if (operatorCheck.status === 200 && opRes.user) {
           localStorage.setItem('userRole', opRes.user.role);
           localStorage.setItem('userData', JSON.stringify(opRes.user));
@@ -80,9 +72,13 @@ export default function RequireAuth({ children }) {
       }
     };
 
-    verifyAccess();
-  }, [isAuthenticated, user]);
+    // ✅ ejecutar siempre después de cargar Auth0
+    if (!isLoading) {
+      verifyAccess();
+    }
+  }, [isLoading, isAuthenticated, user]);
 
+  // 🕐 Mientras Auth0 carga o estamos verificando acceso
   if (isLoading || checking) {
     return (
       <div
@@ -90,7 +86,7 @@ export default function RequireAuth({ children }) {
           display: 'grid',
           placeItems: 'center',
           height: '100vh',
-          fontSize: '20px'
+          fontSize: '20px',
         }}
       >
         Cargando autenticación...
@@ -98,11 +94,13 @@ export default function RequireAuth({ children }) {
     );
   }
 
+  // 🔐 Si no está autenticado, redirigir
   if (!isAuthenticated) {
     loginWithRedirect();
     return null;
   }
 
+  // 🚫 Si no tiene permisos
   if (!accessGranted) {
     return (
       <div style={{ textAlign: 'center', marginTop: '50px', fontSize: '20px' }}>
@@ -111,5 +109,6 @@ export default function RequireAuth({ children }) {
     );
   }
 
+  // ✅ Acceso concedido
   return <>{children}</>;
 }
