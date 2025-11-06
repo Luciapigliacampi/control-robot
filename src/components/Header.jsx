@@ -6,7 +6,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-export default function Header({ title = 'LiftCore', onLogout }) {
+export default function Header({ title = 'Bottype', onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const { user } = useAuth0();

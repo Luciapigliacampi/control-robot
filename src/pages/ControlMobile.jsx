@@ -90,7 +90,7 @@ export default function ControlMobile() {
   return (
     <>
       {/* Header fijo */}
-      <Header title="LiftCore" onLogout={handleLogout} />
+      <Header title="Bottype" onLogout={handleLogout} />
 
       {/* Contenido */}
       <div
