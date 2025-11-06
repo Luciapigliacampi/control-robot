@@ -53,7 +53,7 @@ export default function Header({ title = 'Bottype', onLogout }) {
       if (res.ok) {
         // Guardamos token en localStorage antes de ir
         localStorage.setItem('dashboardToken', data.token);
-        window.location.href = `http://localhost:5174?token=${data.token}`;
+        window.location.href = `https://adm-robot.vercel.app/?token=${data.token}`;
       } else {
         console.error('No se pudo generar token:', data.message);
       }

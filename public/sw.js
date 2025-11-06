@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = "bottype-cache-v2";
+const CACHE_NAME = "bottype-cache-v3";
 const APP_SHELL = ["/", "/index.html", "/favicon.svg", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 // Cambiá esto si servís imágenes desde otro host (tu backend):
